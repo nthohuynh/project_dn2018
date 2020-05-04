@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="ASCII"?>
+<acme.org:System
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:acme.org="www.acme.org"
+    xsi:schemaLocation="www.acme.org ../models/ACME.ecore#/0"
+    name="TransactionManagementSystem">
+  <componentDeclaration
+      name="Sender">
+    <ports name="toReceiver"/>
+    <ports name="toCompression"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="Receiver">
+    <ports name="fromSender"/>
+    <ports name="toDecompression"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="Compression">
+    <representations>
+      <systems>
+        <componentDeclaration
+            name="RLECompression">
+          <ports
+              name="fromCompression"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="LZCompression">
+          <ports
+              name="fromCompression"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="Compression"
+            portSrc="fromSender"
+            compDest="LZCompression"
+            portDest="fromCompression"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="Compression"
+            portSrc="fromSender"
+            compDest="RLECompression"
+            portDest="fromCompression"/>
+      </systems>
+    </representations>
+    <ports name="fromSender"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="Decompression">
+    <representations>
+      <systems>
+        <componentDeclaration
+            name="RLEDecompression">
+          <ports
+              name="fromDecompression"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="LZDecompression">
+          <ports
+              name="fromDecompression"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="Decompression"
+            portSrc="fromReceiver"
+            compDest="RLEDecompression"
+            portDest="fromDecompression"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="Decompression"
+            portSrc="fromReceiver"
+            compDest="LZDecompression"
+            portDest="fromDecompression"/>
+      </systems>
+    </representations>
+    <ports name="fromReceiver"/>
+  </componentDeclaration>
+  <connectorDeclaration
+      name="CnnSR">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnSC"/>
+  <connectorDeclaration
+      name="CnnRD"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Decompression"
+      port="fromReceiver"
+      con="CnnRD"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Receiver"
+      port="toDecompression"
+      con="CnnRD"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Compression"
+      port="fromSender"
+      con="CnnSC"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Sender"
+      port="toCompression"
+      con="CnnSC"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Sender"
+      port="toReceiver"
+      con="CnnSR"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Receiver"
+      port="fromSender"
+      con="CnnSR"
+      role="callee"/>
+</acme.org:System>

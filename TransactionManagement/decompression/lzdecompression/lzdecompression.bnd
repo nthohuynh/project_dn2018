@@ -1,0 +1,7 @@
+
+Private-Package:  \
+	lzdecompression,\
+	lzdecompression.control
+Include-Resource: \
+	resources
+Bundle-Name: LZDecompression

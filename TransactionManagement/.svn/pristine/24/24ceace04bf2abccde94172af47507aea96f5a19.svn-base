@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ASCII"?>
+<reconfigurationPlan:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:reconfigurationPlan="http://reconfigurationplan">
+  <isolation>
+    <actions component="RLECompression"/>
+  </isolation>
+  <activation>
+    <actions component="LZCompression"/>
+    <actions component="LZDecompression"/>
+  </activation>
+</reconfigurationPlan:Plan>

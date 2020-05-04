@@ -1,0 +1,6 @@
+
+Private-Package:  \
+	receiver
+Include-Resource: \
+	resources
+Bundle-Name: Receiver

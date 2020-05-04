@@ -1,0 +1,90 @@
+package rledecompression;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+import org.apache.felix.ipojo.Factory;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Validate;
+
+import rledecompression.control.Controller;
+import rledecompression.control.RLEDecompressionOutInterceptor;
+import service.DecompressionService;
+import utils.MyMessage;
+
+@Component(name="RLEDecompression")
+public class RLEDecompression {
+	Server server;
+	JaxWsServerFactoryBean svrFactory; 
+
+	Factory[] factories;
+	
+	//barrier
+	public boolean enableProcess = false;
+	public CircularFifoQueue<MyMessage> buffer;
+	
+	Controller controller;
+	public RLEDecompression() {
+		System.out.println("start RLEDecompression");
+		controller = new Controller();
+		controller.setFactory(factories);
+		
+		DecompressionImpl sendingImpl = new DecompressionImpl();
+		svrFactory = new JaxWsServerFactoryBean();
+		//MyDestinationFactory destFac = new MyDestinationFactory();
+		//svrFactory.setDestinationFactory(destFac);
+
+		svrFactory.setServiceClass(DecompressionService.class);
+		svrFactory.setAddress("udp://192.168.56.3:9000/rledecompression");
+		svrFactory.setServiceBean(sendingImpl);
+		svrFactory.getOutInterceptors().add(new RLEDecompressionOutInterceptor());
+		server = svrFactory.create();
+		server.start();
+	}
+	public static void main(String arg[]) {
+		new RLEDecompression();
+	}
+	@Validate
+	public void start() throws Exception {
+//		this.enableProcess = true;
+//		server1 = svrFactory1.create();
+//		server1.start();
+	}
+
+	@Invalidate
+	public void stop() throws Exception {
+//		this.enableProcess = false;
+//		server1.stop();
+//		svrFactory1.destroy();
+//		controller.stop(); //quit server rmi
+	}
+	class DecompressionImpl implements DecompressionService {
+		boolean chk = true;
+		public String decompressedStr;
+
+		public String decompress(String compressedText) {
+			//System.out.println("at decompression: "+compressedText);
+			// TODO Auto-generated method stub
+			try {
+			StringBuffer dest = new StringBuffer();
+			Pattern pattern = Pattern.compile("[0-9]+|[a-zA-Z]");
+			Matcher matcher = pattern.matcher(compressedText);
+			while (matcher.find()) {
+				int number = Integer.parseInt(matcher.group());
+				matcher.find();
+				while (number-- != 0) {
+					dest.append(matcher.group());
+				}
+			}
+			return dest.toString();
+			} catch (Exception e) {
+				return "errors";
+			}
+		}
+	}
+	
+}

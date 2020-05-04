@@ -1,0 +1,298 @@
+package reconfigurator;
+
+import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Provides;
+
+import service.ControlService;
+import service.ReconfigurationService;
+import utils.MyMessage;
+
+@Component(name = "Reconfigurator")
+
+public class Reconfigurator implements ReconfigurationService {
+
+	ArrayList<String> transactionList = new ArrayList<String>();
+
+	String thisAddress = "192.168.56.1";
+	int thisPort = 9013;
+
+	Registry registry; // rmi registry for lookup the remote objects.
+	ControlService controlService;
+
+	public Reconfigurator() {
+		// initiate reconfigurator to receive transaction information
+		System.out.println("Start reconfigurator");
+		
+		//set policy for rmi server
+		System.setProperty("java.security.policy", "java.security.AllPermission");
+		System.setProperty("java.rmi.server.hostname", "192.168.56.1");
+		try {
+			new ReconfiguratorServiceImpl(thisAddress, thisPort);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static void main(String arg[]) {
+		new Reconfigurator();
+	}
+	
+	public void reconfigure(String reconfigurationPlan) {
+		/*
+		 * read plan and realize reconfiguration process
+		 */
+
+		/*
+		 * From reconfiguration plan, isolated components are inferred
+		 */
+
+		// isolate components
+		isolate("RLECompression", "192.168.56.22", 9022, true);
+		isolate("Compression", "192.168.56.22", 9032, true);
+
+		// verify all global transactions finished
+		boolean chk = true;
+		while (chk) {
+			if (transactionList.isEmpty()) {
+				chk = false;
+			} else
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+		}
+		// add components
+		// use JMX service in Karaf
+
+		// drive messages from compression to lzcompression
+		connect("Compression", "192.168.56.22", 9022,"udp://192.168.56.2:9014/lzcompression");
+		// drive messages from decompression to lzdecompression
+		connect("Decompression", "192.168.56.22", 9022,
+				"udp://192.168.56.2:9014/lzdecompression");
+
+		// transfer messages
+		CircularFifoQueue<MyMessage> listMsgs = readMessages("RLECompression",
+				"192.168.1.2", 9022);
+		writeMessage("LZCompression", listMsgs, "192.168.2.1", 9023);
+
+		// deactivate isolation
+		isolate("LZCompression", "192.168.56.2", 9024, false);
+		isolate("Compression", "192.168.56.22", 9032, false);
+
+		// remove components
+		// use JMX service in Karaf
+
+	}
+
+	public void isolate(String component, String address, int port, boolean bool) {
+		/*
+		 * connecto to component and send isolation command
+		 */
+
+		/*
+		 * search the location of component thanks to a development model
+		 */
+		// String address = "192.168.56.22";
+		// int port = 9022;
+
+		/*
+		 * connect to the isolated component
+		 */
+		ControlService controlService;
+		Registry registry;
+
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			controlService = (ControlService) (registry.lookup(component
+					+ "Controller"));
+
+			controlService.isolate(bool);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void connect(String srcComponent, String address, int port,
+			String toNewAddress) {
+
+		ControlService controlService;
+		Registry registry;
+
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			
+			controlService = (ControlService) (registry.lookup(srcComponent
+					+ "Controller"));
+
+			controlService.connect(toNewAddress);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public void activate(String component) {
+
+	}
+
+	public void deactivate(String component) {
+
+	}
+
+	public CircularFifoQueue<MyMessage> readMessages(String component,
+			String address, int port) {
+		/*
+		 * search location of component
+		 */
+
+		address = "192.168.56.22";
+		port = 9022;
+
+		/*
+		 * connecto to component and read messages
+		 */
+		ControlService service;
+		Registry registry;
+		CircularFifoQueue<MyMessage> msg = null;
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			service = (ControlService) (registry.lookup(component));
+			msg = service.readMessages();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return msg;
+	}
+
+	public void writeMessage(String component,
+			CircularFifoQueue<MyMessage> msg, String address, int port) {
+		/*
+		 * todo: search location of component
+		 */
+
+		address = "";
+		port = 0;
+
+		/*
+		 * connecto to component and write messages
+		 */
+		ControlService service;
+		Registry registry;
+
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			service = (ControlService) (registry.lookup(component));
+
+			service.writeMessages(msg);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	class ReconfiguratorServiceImpl extends UnicastRemoteObject implements
+			ControlService, Serializable {
+
+		private static final long serialVersionUID = 1L;
+		int thisPort;
+		String thisAddress;
+		Registry registry; // rmi registry for lookup the remote objects.
+
+		public ReconfiguratorServiceImpl(String add, int port)
+				throws RemoteException {
+			this.thisAddress = add;
+			this.thisPort = port;
+			// System.setProperty("java.rmi.server.hostname", add);
+//			System.setProperty("java.security.policy", "java.security.AllPermission");
+//			System.setProperty("java.rmi.server.hostname", "192.168.56.1");
+//			System.setProperty("java.security.policy", "mypolicy");
+			try {
+				// create the registry and bind the name and object.
+				registry = LocateRegistry.createRegistry(thisPort);
+				registry.rebind("Reconfigurator", this);
+			} catch (RemoteException e) {
+				throw e;
+			}
+		}
+
+		@Override
+		public void informBeginning(String transactionID) {
+			// TODO Auto-generated method stub
+
+			/*
+			 * begin a transaction
+			 */
+			System.out.println("Reconfigurator receives -> Beginning of transaction: "+transactionID);
+			transactionList.add(transactionID);
+
+		}
+
+		@Override
+		public void informEnd(String transactionID) {
+			// TODO Auto-generated method stub
+
+			/*
+			 * end the transaction
+			 */
+			System.out.println("Reconfigurator receives -> End of transaction: "+transactionID);
+			transactionList.remove(transactionList.indexOf(transactionID));
+		}
+
+		@Override
+		public void isolate(boolean bool) {
+			// TODO Auto-generated method stub
+			// no actions
+		}
+
+		@Override
+		public void activate(String component) {
+			// TODO Auto-generated method stub
+			// no actions
+		}
+
+		@Override
+		public void deactivate(String component) {
+			// TODO Auto-generated method stub
+			// no actions
+		}
+
+		@Override
+		public CircularFifoQueue<MyMessage> readMessages()
+				throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void writeMessages(CircularFifoQueue<MyMessage> msg)
+				throws RemoteException {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void connect(String address) throws RemoteException {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+}

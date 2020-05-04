@@ -1,0 +1,22 @@
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+
+public class ConvertStringtoByte {
+    public static void main(String[] args) throws UnsupportedEncodingException {
+
+
+    String givenString = "stackoverflow";
+    System.out.println(givenString );
+
+
+    byte[] byteValue = givenString .getBytes();
+
+    System.out.println(Arrays.toString(byteValue ));
+
+
+    byte[] byteValueAscii= givenString.getBytes("US-ASCII");
+    System.out.println(Arrays.toString(byteValueAscii));
+    
+    
+    }
+}

@@ -1,0 +1,95 @@
+package sender;
+
+
+import java.util.Scanner;
+
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import org.apache.felix.ipojo.annotations.Component;
+
+import sender.control.CompressingOutInterceptor;
+import sender.control.SendingOutInterceptor;
+import service.CompressionService;
+import service.SendingService;
+
+@Component(name="Sender", immediate=true)
+
+public class Sender {
+	String fullCompressionAddress = "udp://192.168.56.1:9001/compression";
+	String fullReceiverAddress = "udp://192.168.56.1:9000/sending";
+	
+//	String uri_prefix = "http://";
+	JaxWsProxyFactoryBean factory, compressionFactory ;
+	
+	SendingService client; //see as a property
+    CompressionService compress;
+	@SuppressWarnings("resource")
+	public Sender() {
+		
+		//set address to compression
+//		Scanner reader = new Scanner(System.in);  
+//		System.out.print("Enter compresser address (e.g., 192.168.56.3:9011): ");
+//		String compressionAddress = reader.next();
+//		fullCompressionAddress = uri_prefix+compressionAddress+"/compression";
+		
+		//connect to compression
+		compressionFactory = new JaxWsProxyFactoryBean();
+		compressionFactory.setServiceClass(CompressionService.class);
+		compressionFactory.setAddress(fullCompressionAddress);
+		compressionFactory.getOutInterceptors().add(new CompressingOutInterceptor());
+		compress = (CompressionService)compressionFactory.create();
+		
+		
+		//set address to receiver
+//		Scanner reader2 = new Scanner(System.in);  
+//		System.out.print("Enter receiver address (e.g., 192.168.56.2:9011): ");
+//		String receiverAddress = reader2.next();
+//		fullCompressionAddress = uri_prefix+receiverAddress+"/sending";
+		
+		//connect to receiver
+		factory = new JaxWsProxyFactoryBean();
+		factory.setServiceClass(SendingService.class);
+		factory.setAddress(fullReceiverAddress);
+		factory.getOutInterceptors().add(new SendingOutInterceptor());
+		client = (SendingService)factory.create();
+				
+		Sending send = new Sending("Tittotatu");
+		send.start();
+    } 
+    
+//  @Property (name="setAddr")
+//	public void setAddress(String add) {
+//    	this.address = add;
+//    	//factory.getBus().shutdown(true);
+//    	factory.setAddress(add+"/HelloWorld");
+//    	client = (SendingService)factory.create();
+//    }
+   
+    class Sending extends Thread {
+    	String str;
+		public Sending(String string) {
+			// TODO Auto-generated constructor stub
+			this.str = string;
+		}
+
+		public void run() {
+			for (int i = 0; i < 10; i++) {
+
+				System.out.println("Client sends "+i);
+				
+				String compressedMsg = compress.compress(str);
+				System.out.println(compressedMsg);
+				
+				client.send(compressedMsg);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+    public static void main(String arg[]) {
+    	new Sender();
+    }
+}

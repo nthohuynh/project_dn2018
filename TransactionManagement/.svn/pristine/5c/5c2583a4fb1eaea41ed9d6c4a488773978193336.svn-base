@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="ASCII"?>
+<cvl:VPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cvl="http:///cvl.ecore" xsi:schemaLocation="http:///cvl.ecore ../../models/CVLMetamodel.ecore" name="EncodingManagementSystem">
+  <packageElement xsi:type="cvl:Choice" name="EncodingSystem" defaultResolution="true" isImpliedByParent="true">
+    <child xsi:type="cvl:Choice" name="Sender" isImpliedByParent="true"/>
+    <child xsi:type="cvl:Choice" name="Receiver" isImpliedByParent="true"/>
+    <child xsi:type="cvl:Choice" name="Encoding" isImpliedByParent="true">
+      <groupMultiplicity upper="3" lower="1"/>
+      <child xsi:type="cvl:Choice" name="VideoEncoding">
+        <groupMultiplicity upper="1" lower="1"/>
+        <child xsi:type="cvl:Choice" name="VE1"/>
+        <child xsi:type="cvl:Choice" name="VE2"/>
+      </child>
+      <child xsi:type="cvl:Choice" name="AudioEncoding">
+        <groupMultiplicity upper="1" lower="1"/>
+        <child xsi:type="cvl:Choice" name="AE1"/>
+        <child xsi:type="cvl:Choice" name="AE2"/>
+      </child>
+      <child xsi:type="cvl:Choice" name="TextEncoding">
+        <groupMultiplicity upper="1" lower="1"/>
+        <child xsi:type="cvl:Choice" name="TE1"/>
+        <child xsi:type="cvl:Choice" name="TE2"/>
+      </child>
+    </child>
+    <child xsi:type="cvl:Choice" name="Decoding" isImpliedByParent="true">
+      <groupMultiplicity upper="3" lower="1"/>
+      <child xsi:type="cvl:Choice" name="VideoDecoding">
+        <groupMultiplicity upper="1" lower="1"/>
+        <child xsi:type="cvl:Choice" name="VD1"/>
+        <child xsi:type="cvl:Choice" name="VD2"/>
+      </child>
+      <child xsi:type="cvl:Choice" name="AudioDecoding">
+        <groupMultiplicity upper="1" lower="1"/>
+        <child xsi:type="cvl:Choice" name="AD1"/>
+        <child xsi:type="cvl:Choice" name="AD2"/>
+      </child>
+      <child xsi:type="cvl:Choice" name="TextDecoding">
+        <groupMultiplicity upper="1" lower="1"/>
+        <child xsi:type="cvl:Choice" name="TD1"/>
+        <child xsi:type="cvl:Choice" name="TD2"/>
+      </child>
+    </child>
+  </packageElement>
+  <packageElement xsi:type="cvl:BCLConstraint" name="implies">
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.0/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.0/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.0/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.0/@child.1"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.1/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.1/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.1/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.1/@child.1"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.2/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.2/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.2/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.2/@child.1"/>
+    </expression>
+  </packageElement>
+  <packageElement xsi:type="cvl:BCLConstraint" name="dependsOn">
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.0/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.0/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.0/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.0/@child.1"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.1/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.1/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.1/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.1/@child.1"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.2/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.2/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.2/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.2/@child.1"/>
+    </expression>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="SenderVP" bindingVSpec="//@packageElement.0/@child.0" bindingChoice="//@packageElement.0/@child.0">
+    <optionalObject MOFRef="Sender"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="ReceiverVP" bindingVSpec="//@packageElement.0/@child.1" bindingChoice="//@packageElement.0/@child.1">
+    <optionalObject MOFRef="Receiver"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="EncodingVP" bindingVSpec="//@packageElement.0/@child.2" bindingChoice="//@packageElement.0/@child.2">
+    <optionalObject MOFRef="Encoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="DecodingVP" bindingVSpec="//@packageElement.0/@child.3" bindingChoice="//@packageElement.0/@child.3">
+    <optionalObject MOFRef="Encoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="VideoEncodingVP" bindingVSpec="//@packageElement.0/@child.2/@child.0" bindingChoice="//@packageElement.0/@child.2/@child.0">
+    <optionalObject MOFRef="Encoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="AudioEncodingVP" bindingVSpec="//@packageElement.0/@child.2/@child.1" bindingChoice="//@packageElement.0/@child.2/@child.1">
+    <optionalObject MOFRef="AudioEncoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="TextEncodingVP" bindingVSpec="//@packageElement.0/@child.2/@child.2" bindingChoice="//@packageElement.0/@child.2/@child.2">
+    <optionalObject MOFRef="TextEncoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="VideoDecodingVP" bindingVSpec="//@packageElement.0/@child.3/@child.0" bindingChoice="//@packageElement.0/@child.3/@child.0">
+    <optionalObject MOFRef="VideoDecoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="AudioDecodingVP" bindingVSpec="//@packageElement.0/@child.3/@child.1" bindingChoice="//@packageElement.0/@child.3/@child.1">
+    <optionalObject MOFRef="AudioDecoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="TextDecodingVP" bindingVSpec="//@packageElement.0/@child.3/@child.2" bindingChoice="//@packageElement.0/@child.3/@child.2">
+    <optionalObject MOFRef="TextDecoding"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="VE1" bindingVSpec="//@packageElement.0/@child.2/@child.0/@child.0" bindingChoice="//@packageElement.0/@child.2/@child.0/@child.0">
+    <optionalObject MOFRef="VE1"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="VE2" bindingVSpec="//@packageElement.0/@child.2/@child.0/@child.1" bindingChoice="//@packageElement.0/@child.2/@child.0/@child.1">
+    <optionalObject MOFRef="VE2"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="AE1" bindingVSpec="//@packageElement.0/@child.2/@child.1/@child.0" bindingChoice="//@packageElement.0/@child.2/@child.1/@child.0">
+    <optionalObject MOFRef="AE1"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="AE2" bindingVSpec="//@packageElement.0/@child.2/@child.1/@child.1" bindingChoice="//@packageElement.0/@child.2/@child.1/@child.1">
+    <optionalObject MOFRef="AE2"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="TE1" bindingVSpec="//@packageElement.0/@child.2/@child.2/@child.0" bindingChoice="//@packageElement.0/@child.2/@child.2/@child.0">
+    <optionalObject MOFRef="TE1"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="TE2" bindingVSpec="//@packageElement.0/@child.2/@child.2/@child.1" bindingChoice="//@packageElement.0/@child.2/@child.2/@child.1">
+    <optionalObject MOFRef="TE2"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="VD1" bindingVSpec="//@packageElement.0/@child.3/@child.0/@child.0" bindingChoice="//@packageElement.0/@child.3/@child.0/@child.0">
+    <optionalObject MOFRef="VD1"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="VD2" bindingVSpec="//@packageElement.0/@child.3/@child.0/@child.1" bindingChoice="//@packageElement.0/@child.3/@child.0/@child.1">
+    <optionalObject MOFRef="VD2"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="AD1" bindingVSpec="//@packageElement.0/@child.3/@child.1/@child.0" bindingChoice="//@packageElement.0/@child.3/@child.1/@child.0">
+    <optionalObject MOFRef="AD1"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="AD2" bindingVSpec="//@packageElement.0/@child.3/@child.1/@child.1" bindingChoice="//@packageElement.0/@child.3/@child.1/@child.1">
+    <optionalObject MOFRef="AD2"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="TD1" bindingVSpec="//@packageElement.0/@child.3/@child.2/@child.0" bindingChoice="//@packageElement.0/@child.3/@child.2/@child.0">
+    <optionalObject MOFRef="TD1"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="TD2" bindingVSpec="//@packageElement.0/@child.3/@child.2/@child.1" bindingChoice="//@packageElement.0/@child.3/@child.2/@child.1">
+    <optionalObject MOFRef="TD2"/>
+  </packageElement>
+</cvl:VPackage>

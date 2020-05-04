@@ -1,0 +1,356 @@
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+
+import reconfigurationPlan.ActivationAction;
+import reconfigurationPlan.ActivationStep;
+import reconfigurationPlan.CombinationAction;
+import reconfigurationPlan.CombinationStep;
+import reconfigurationPlan.ConnectionAction;
+import reconfigurationPlan.ConnectionStep;
+import reconfigurationPlan.DeactivationAction;
+import reconfigurationPlan.DeactivationStep;
+import reconfigurationPlan.IsolationAction;
+import reconfigurationPlan.IsolationStep;
+import reconfigurationPlan.Plan;
+import reconfigurationPlan.ReconfigurationPlanFactory;
+import reconfigurationPlan.ReintegrationAction;
+import reconfigurationPlan.ReintegrationStep;
+import reconfigurationPlan.TransferAction;
+import reconfigurationPlan.TransferStep;
+import statetransfer.StateTransferPoint;
+import statetransfer.Variable;
+import cvl.BCLExpression;
+import cvl.ChoiceResolution;
+import cvl.ObjectExistence;
+import cvl.OperationCallExp;
+import cvl.VSpec;
+import cvl.VSpecRef;
+import cvl.VSpecResolution;
+import cvl.VariationPoint;
+
+public class PlanGeneration {
+	ArrayList<VSpecResolution> conf1; 
+	ArrayList<VSpecResolution> conf2; 
+	ArrayList<BCLExpression> dependsOn;
+	
+	VariabilityModel vm;
+	BaseModel bm;
+	StateTransfer st;
+	public PlanGeneration() {
+	
+		//"modelinstances//TMSResolutionModelV1.xmi"
+		ResolutionModel rsl1 = new ResolutionModel("modelinstances//encodingsystem//ESResolutionModel1.xmi");
+		ChoiceResolution root = rsl1.getRoot();
+		conf1 = rsl1.getPositiveResolutionList(root);
+		
+		//"modelinstances//TMSResolutionModelV2.xmi"
+		ResolutionModel rsl2 = new ResolutionModel("modelinstances//encodingsystem//ESResolutionModel2.xmi");
+		ChoiceResolution root2 = rsl2.getRoot();
+		conf2 = rsl2.getPositiveResolutionList(root2);
+		
+		//modelinstances//TMSVariabilityModel.xmi
+		vm = new VariabilityModel("modelinstances//encodingsystem//ESVariabilityModel.xmi");
+		dependsOn = vm.getDependsOn();
+		
+		bm = new BaseModel("modelinstances//encodingsystem//ESBaseModel.xmi");
+		
+		st = new StateTransfer("modelinstances//StateTransferModel.xmi");
+	}
+	
+	void generatePlan() {
+		ReconfigurationPlanFactory reconfigurationPlanFactory;
+		reconfigurationPlanFactory = ReconfigurationPlanFactory.eINSTANCE;
+		
+		Plan plan;
+		plan = reconfigurationPlanFactory.createPlan();
+		
+	    IsolationStep isolationStep = reconfigurationPlanFactory.createIsolationStep();
+	    plan.setIsolation(isolationStep);
+	   
+	    for (String str : getIsolatedComponents()) {
+	    	IsolationAction isolationAction = reconfigurationPlanFactory.createIsolationAction();
+		    isolationAction.setComponent(str);
+		    isolationStep.getActions().add(isolationAction);
+		}
+
+	    ActivationStep activationStep = reconfigurationPlanFactory.createActivationStep();
+	    plan.setActivation(activationStep);
+	    for (String str : getAddedComponents()) {
+	    	ActivationAction activationAction = reconfigurationPlanFactory.createActivationAction();
+		    activationAction.setComponent(str);
+		    activationStep.getActions().add(activationAction);
+		}
+	   
+	    ConnectionStep connectionStep = reconfigurationPlanFactory.createConnectionStep();
+	    plan.setConnection(connectionStep);
+	    for (Connection cn : getNewConnections()) {
+	    	ConnectionAction connectionAction = reconfigurationPlanFactory.createConnectionAction();
+	    	connectionAction.setSrcComponent(cn.getSrc());
+	    	connectionAction.setDstComponent(cn.getDst());
+	    	connectionStep.getActions().add(connectionAction);
+	    }
+	
+//	    TransferStep transferStep = reconfigurationPlanFactory.createTransferStep();
+//	    plan.setTransfer(transferStep);
+//	    for (StateTransferPoint stp: getStatePoints()) {
+//	    	TransferAction transferAction = reconfigurationPlanFactory.createTransferAction();
+//	    	transferAction.setPoint(stp);
+//	    	transferStep.getActions().add(transferAction);
+//	    }
+	    
+	    ReintegrationStep combinationStep = reconfigurationPlanFactory.createReintegrationStep();
+	    plan.setReintegration(combinationStep);
+	    for (String str : getCombinatedComponents()) {
+	    	ReintegrationAction combinationAction = reconfigurationPlanFactory.createReintegrationAction();
+		    combinationAction.setComponent(str);
+		    combinationStep.getActions().add(combinationAction);
+		}
+	    
+	    DeactivationStep deactivationStep = reconfigurationPlanFactory.createDeactivationStep();
+	    plan.setDeactivation(deactivationStep);
+	    for (String str : getRemovedComponents()) {
+	    	DeactivationAction deactivationAction = reconfigurationPlanFactory.createDeactivationAction();
+		    deactivationAction.setComponent(str);
+		    deactivationStep.getActions().add(deactivationAction);
+		}
+	  //write to file
+  		Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
+  		Map<String, Object> m = reg.getExtensionToFactoryMap();
+  	    m.put("xmi", new XMIResourceFactoryImpl());
+  	    // Obtain a new resource set
+  	    ResourceSet resSet = new ResourceSetImpl();
+  	    // create a resource
+  	    Resource resource = resSet.createResource(URI.createURI("modelinstances//plan.xmi"));
+  	    // Get the first model element and cast it to the right type, in my
+  	    // example everything is hierarchical included in this first node
+  	    resource.getContents().add(plan);
+  	    // now save the content.
+  	    try {
+  	    	resource.save(Collections.EMPTY_MAP);
+  	    } catch (IOException e) {
+  	      // TODO Auto-generated catch block
+  	    	e.printStackTrace();
+  	    }
+	    
+	}
+	
+	//compare two configurations to identify the elements that will be addes into the archiecture
+	ArrayList<VSpecResolution> getAddedElements() {
+		ArrayList<VSpecResolution> newElements = new ArrayList<VSpecResolution>();
+		
+		ArrayList<String> conf1String = new ArrayList<String>();
+		for (VSpecResolution vr : conf1) {
+			conf1String.add(vr.getName());
+		}
+		for (VSpecResolution resol : conf2) {
+			if (!conf1String.contains(resol.getName())) {
+				newElements.add(resol);
+			}
+		}
+		return newElements;
+	}
+	ArrayList<String> getAddedComponents() {
+		ArrayList<String> addedComponents = new ArrayList<String>();
+		ArrayList<VSpecResolution> addedElements = getAddedElements();
+		for (VSpecResolution addedElement : addedElements) {
+			VSpec vspec = addedElement.getResolvedVSpec();
+			
+			ArrayList<VariationPoint> vps = vm.getVariationPoints();
+			for (VariationPoint vp : vps) {
+				if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+					String addedComponent =  ((ObjectExistence)vp).getOptionalObject().getMOFRef();
+					addedComponents.add(addedComponent);
+				}
+			}
+		}
+		return addedComponents;
+	}
+	
+	
+	//compare two configuration to identify the elements that will be removed from the architecture
+	ArrayList<VSpecResolution> getRemovedElements() {
+		ArrayList<VSpecResolution> removedElements = new ArrayList<VSpecResolution>();
+		
+		ArrayList<String> conf2String = new ArrayList<String>();
+		for (VSpecResolution vr : conf2) {
+			conf2String.add(vr.getName());
+		}
+		for (VSpecResolution resol : conf1) {
+			if (!conf2String.contains(resol.getName())) {
+				removedElements.add(resol);
+			}
+		}
+		return removedElements;
+	}
+	ArrayList<String> getRemovedComponents() {
+		ArrayList<String> removedComponents = new ArrayList<String>();
+		ArrayList<VSpecResolution> removedElements = getRemovedElements();
+		for (VSpecResolution removedElement : removedElements) {
+			VSpec vspec = removedElement.getResolvedVSpec();
+			
+			ArrayList<VariationPoint> vps = vm.getVariationPoints();
+			for (VariationPoint vp : vps) {
+				if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+					String addedComponent =  ((ObjectExistence)vp).getOptionalObject().getMOFRef();
+					removedComponents.add(addedComponent);
+				}
+			}
+		}
+		return removedComponents;
+	}
+	
+	
+	/*
+	 * identify isolated elements from removed elements list.
+	 * elements in the left of dependsOn need not to be isolated.
+	 */
+	
+	ArrayList<VSpecResolution> getIsolatedElements() {
+		ArrayList<VSpecResolution> isolatedComponentNames = new ArrayList<VSpecResolution>();
+		ArrayList<VSpecResolution> removedElements = getRemovedElements();
+
+		for (VSpecResolution removedElement : getRemovedElements()) {
+			VSpec vspec = removedElement.getResolvedVSpec();
+			for (BCLExpression bcl: dependsOn) {
+				EList<BCLExpression> argument = ((OperationCallExp)bcl).getArgument();
+				
+				VSpec dst = ((VSpecRef)argument.get(0)).getVSpec();
+				if (vspec.getName().equals(dst.getName())) {
+					isolatedComponentNames.add(removedElement);
+				}
+			}
+		}
+		return isolatedComponentNames;
+	}
+	ArrayList<String> getIsolatedComponents() {
+		ArrayList<String> isolatedComponents = new ArrayList<String>();
+		ArrayList<VSpecResolution> isolatedElements = getIsolatedElements();
+		for (VSpecResolution isolatedElement : isolatedElements) {
+			VSpec vspec = isolatedElement.getResolvedVSpec();
+			
+			ArrayList<VariationPoint> vps = vm.getVariationPoints();
+			for (VariationPoint vp : vps) {
+				if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+					String isolatedComponent =  ((ObjectExistence)vp).getOptionalObject().getMOFRef();
+					isolatedComponents.add(isolatedComponent);
+				}
+			}
+		}
+		return isolatedComponents;
+	}
+	
+	
+	/*
+	 * get elements that are unisolated
+	 * 
+	 */
+	ArrayList<VSpecResolution> getCombinatedElements() {
+		ArrayList<VSpecResolution> combinatedElements = new ArrayList<VSpecResolution>();
+		ArrayList<VSpecResolution> addedElements = getAddedElements();
+		combinatedElements = addedElements;
+		for (VSpecResolution addedElement : getAddedElements()) {
+			VSpec vspec = addedElement.getResolvedVSpec();
+			for (BCLExpression bcl: dependsOn) {
+				EList<BCLExpression> argument = ((OperationCallExp)bcl).getArgument();
+				
+				VSpec dst = ((VSpecRef)argument.get(1)).getVSpec();
+				if (vspec.getName().equals(dst.getName())) {
+					combinatedElements.remove(addedElement);
+				}
+			}
+		}
+		return combinatedElements;
+	}
+	ArrayList<String> getCombinatedComponents() {
+		ArrayList<String> combinatedComponents = new ArrayList<String>();
+		ArrayList<VSpecResolution> combinatedElements = getCombinatedElements();
+		for (VSpecResolution combinatedElement : combinatedElements) {
+			VSpec vspec = combinatedElement.getResolvedVSpec();
+			
+			ArrayList<VariationPoint> vps = vm.getVariationPoints();
+			for (VariationPoint vp : vps) {
+				if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+					String isolatedComponent =  ((ObjectExistence)vp).getOptionalObject().getMOFRef();
+					combinatedComponents.add(isolatedComponent);
+				}
+			}
+		}
+		return combinatedComponents;
+	}
+	/* 
+	 * reset connection to new elements
+	 * to identify the new connection, the base model is used
+	 */
+	ArrayList<Connection> getNewConnections() {
+		ArrayList<Connection> newConnList = new ArrayList<Connection>();
+		
+		ArrayList<Connection> allConnection = new ArrayList<Connection>();
+		allConnection = bm.getAllConnection();
+		
+		ArrayList<VSpecResolution> newElements = getAddedElements(); //get new element
+		
+		for (VSpecResolution newElement : newElements) {
+			VSpec vspec = newElement.getResolvedVSpec();
+			ArrayList<VariationPoint> vps = vm.getVariationPoints();
+			for (VariationPoint vp : vps) {
+				if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+					String newComponent =  ((ObjectExistence)vp).getOptionalObject().getMOFRef();
+					for (Connection c : allConnection) {
+						if (c.getDst().equals(newComponent)) {
+							newConnList.add(c);
+						}
+					}
+				}
+			}
+		}
+		
+		return newConnList;
+	}
+	
+	/*
+	 * find state transfer point relating to the new component
+	 * statepoint.dst = new component 
+	 */
+	ArrayList<StateTransferPoint> getStatePoints() {
+		ArrayList<StateTransferPoint> stp = new ArrayList<StateTransferPoint>();
+		
+		EList<StateTransferPoint> allPoint = st.getStateTransferPoint();
+		
+		ArrayList<VSpecResolution> newElements = getAddedElements(); 
+		for (VSpecResolution newElement : newElements) {
+			VSpec vspec = newElement.getResolvedVSpec();
+			ArrayList<VariationPoint> vps = vm.getVariationPoints();
+			for (VariationPoint vp : vps) {
+				if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+					String newComponent =  ((ObjectExistence)vp).getOptionalObject().getMOFRef();
+					
+					for (StateTransferPoint p : allPoint) {
+						if (p.getDstVariable() instanceof Variable) {
+							Variable dst = (Variable)p.getDstVariable();
+							if (dst.getVariableHandle().getMofRef().equals(newComponent)) {
+								stp.add(p);
+							}
+						}
+					}
+				}
+			}
+		}
+		return stp;
+	}
+		
+	public static void main(String arg[]) {
+		PlanGeneration pg = new PlanGeneration();
+		pg.generatePlan();
+		
+	}
+	
+}

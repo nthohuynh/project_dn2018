@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/TransactionManagement/src" modelPluginID="TransactionManagement"
+    modelName="ReconfigurationPlan" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="7.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true">
+  <foreignModel>reconfigurationPlan.ecore</foreignModel>
+  <genPackages prefix="ReconfigurationPlan" disposableProviderFactory="true" ecorePackage="reconfigurationPlan.ecore#/">
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//Plan">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Plan/isolation"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Plan/activation"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Plan/connection"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Plan/transfer"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Plan/reintegration"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Plan/deactivation"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//Action">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//Action/id"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Action/requiresAction"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//Action/requiredByAction"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//Step">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//Step/stepID"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//IsolationStep">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//IsolationStep/actions"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//IsolationAction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//IsolationAction/component"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ActivationStep">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//ActivationStep/actions"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ActivationAction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ActivationAction/component"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ConnectionStep">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//ConnectionStep/actions"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ConnectionAction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ConnectionAction/srcComponent"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ConnectionAction/oldComponent"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ConnectionAction/newComponent"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//TransferStep">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//TransferStep/actions"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//TransferAction">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//TransferAction/point"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ReintegrationStep">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//ReintegrationStep/actions"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ReintegrationAction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ReintegrationAction/component"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//DeactivationStep">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference reconfigurationPlan.ecore#//DeactivationStep/actions"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//DeactivationAction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//DeactivationAction/component"/>
+    </genClasses>
+    <genClasses ecoreClass="reconfigurationPlan.ecore#//ActionReference">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ActionReference/stepId"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute reconfigurationPlan.ecore#//ActionReference/actionId"/>
+    </genClasses>
+  </genPackages>
+  <genPackages prefix="Statetransfer" disposableProviderFactory="true" ecorePackage="stateTransfer.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="stateTransfer.ecore#//PrimitiveTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//PrimitiveTypeEnum/Integer"/>
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//PrimitiveTypeEnum/Float"/>
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//PrimitiveTypeEnum/String"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="stateTransfer.ecore#//Operation">
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//Operation/arithPlus"/>
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//Operation/arithMinus"/>
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//Operation/arithNeg"/>
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//Operation/arithMult"/>
+      <genEnumLiterals ecoreEnumLiteral="stateTransfer.ecore#//Operation/arithDev"/>
+    </genEnums>
+    <genClasses ecoreClass="stateTransfer.ecore#//StateTransferModel">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//StateTransferModel/points"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//StateTransferPoint">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//StateTransferPoint/id"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//StateTransferPoint/srcVariable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//StateTransferPoint/dstVariable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//StateTransferPoint/function"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//IntermediateComponent">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//IntermediateComponent/name"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="stateTransfer.ecore#//Element"/>
+    <genClasses ecoreClass="stateTransfer.ecore#//StateTransferFunction">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//StateTransferFunction/id"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//StateTransferFunction/specification"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//StateTransferFunction/expression"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="stateTransfer.ecore#//Expression"/>
+    <genClasses image="false" ecoreClass="stateTransfer.ecore#//Type"/>
+    <genClasses ecoreClass="stateTransfer.ecore#//PrimitiveType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//PrimitiveType/type"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//ObjectType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//ObjectType/class"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//ObjectHandle">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//ObjectHandle/mofRef"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//Variable">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//Variable/id"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//Variable/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//Variable/type"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//Variable/variableHandle"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="stateTransfer.ecore#//OperationExpression">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//OperationExpression/argument"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//VariableExpr">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference stateTransfer.ecore#//VariableExpr/variableRef"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//DefaultOperationExpression">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//DefaultOperationExpression/defaultOperation"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//CustomOperationExpression">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//CustomOperationExpression/customOperation"/>
+    </genClasses>
+    <genClasses ecoreClass="stateTransfer.ecore#//Constant">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute stateTransfer.ecore#//Constant/value"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

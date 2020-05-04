@@ -1,0 +1,49 @@
+import java.io.File;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+
+import cvl.BCLConstraint;
+import cvl.BCLExpression;
+import cvl.OperationCallExp;
+import cvl.VPackage;
+import cvl.VPackageable;
+import cvl.VSpec;
+import cvl.VSpecRef;
+import cvl.cvlPackage;
+
+
+public class PlanGeneration {
+	public PlanGeneration() {
+		
+		String cvlFile= "modelinstances//TMSVariabilityModel.xmi";
+		cvlPackage.eINSTANCE.eClass();
+		Resource resource;
+		Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
+		try {
+			reg.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
+		} catch (Exception e){
+		}
+		ResourceSet resourceSet = new ResourceSetImpl();
+		String filename = new File(cvlFile).getAbsolutePath();
+		URI uri = URI.createFileURI(filename);
+		resource = resourceSet.getResource(uri, true);
+		
+		VPackage vpackage = null;
+		vpackage = (VPackage)resource.getContents().get(0);
+		
+		
+		
+	}
+	
+	public static void main(String arg[]) {
+		new PlanGeneration();
+	}
+}

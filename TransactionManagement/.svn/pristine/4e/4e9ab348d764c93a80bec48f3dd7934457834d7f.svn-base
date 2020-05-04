@@ -1,0 +1,43 @@
+package control;
+
+import service.ControlService;
+
+public class Controller implements ControlService {
+
+	@Override
+	public void isolate(boolean bool) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void combine(boolean bool) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void activate(String component) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivate(String component) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void informBeginning(String transactionID) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void informEnding(String transactionID) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

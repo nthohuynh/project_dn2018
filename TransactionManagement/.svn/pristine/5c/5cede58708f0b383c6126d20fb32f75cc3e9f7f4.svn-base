@@ -1,0 +1,614 @@
+package reconfigurator;
+
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.management.JMX;
+import javax.management.MBeanServerConnection;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JTextField;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.felix.ipojo.annotations.Component;
+import org.eclipse.emf.common.util.EList;
+import org.osgi.jmx.framework.BundleStateMBean;
+import org.osgi.jmx.framework.FrameworkMBean;
+
+import reconfigurationPlan.ActivationAction;
+import reconfigurationPlan.CombinationAction;
+import reconfigurationPlan.ConnectionAction;
+import reconfigurationPlan.DeactivationAction;
+import reconfigurationPlan.IsolationAction;
+import reconfigurationPlan.TransferAction;
+import service.ControlService;
+import service.ReconfigurationService;
+import statetransfer.StateTransferPoint;
+import statetransfer.Variable;
+import utils.MyMessage;
+@Component(name = "Reconfigurator")
+
+public class Reconfigurator extends JFrame implements ActionListener, ReconfigurationService{
+
+	ArrayList<String> transactionList = new ArrayList<String>();
+
+	String thisAddress = "192.168.56.1";
+	int thisPort = 9013;
+
+	Registry registry; // rmi registry for lookup the remote objects.
+	ControlService controlService;
+
+	JTextField txt;
+	public Reconfigurator() {
+		// initiate reconfigurator to receive transaction information
+		System.out.println("Start reconfigurator");
+		
+		//set policy for rmi server
+		System.setProperty("java.security.policy", "java.security.AllPermission");
+		System.setProperty("java.rmi.server.hostname", "192.168.56.1");
+		try {
+			new ReconfiguratorServiceImpl(thisAddress, thisPort);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+		
+		JFrame fr = new JFrame("Controller");
+	    fr.setSize(500,200);
+	    fr.setLayout(new BorderLayout());
+	    fr.setLocation(900,100);
+	    
+	    txt = new JTextField(100);
+	    fr.add(txt, BorderLayout.NORTH);
+	    
+	    final JButton bt2 = new JButton("Reconfigure");
+	    fr.add(bt2, BorderLayout.SOUTH);
+	    bt2.addActionListener(this); 
+		
+		fr.setVisible(true);
+	}
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+		reconfigure("");
+	}
+	public static void main(String arg[]) {
+		new Reconfigurator();
+	}
+	
+	public void reconfigure(String reconfigurationPlanFile) {
+		/*
+		 * read plan and realize reconfiguration process
+		 */
+
+		ReconfigurationPlan reconfigurationPlan = new ReconfigurationPlan("modelinstances//plan.xmi");
+		Deployment deploy = new Deployment("modelinstances//Deployment.xmi");
+
+//		first step: isolate components
+//		isolate("RLECompression", "192.168.56.2", 9010, true);
+		EList<IsolationAction> isolationList = reconfigurationPlan.getIsolationAction();
+		for (IsolationAction isolation : isolationList) {
+			String componentName = isolation.getComponent(); 
+			String address = deploy.getAddress(componentName);
+			int port = deploy.getControlPort(componentName);
+			
+			System.out.println("isolate: "+componentName+"-"+address+"-"+port);
+//			isolate(componentName, address, port, true);
+		}
+
+		
+		// verify all global transactions finished
+		boolean chk = true;
+		while (chk) {
+			System.out.println("Ongoing transaction: "+transactionList.size());
+			if (transactionList.isEmpty()) {
+				chk = false;
+			} else
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+		}		
+		
+//		// second step 
+//		// add components
+//		// use JMX service in Karaf
+//		activate("LZCompression", "192.168.56.2", "80f6ff10-ff01-4ecd-8ae9-8cf9e1330648"); 
+//		activate("LZDecompression", "192.168.56.3", "2a6246cc-052d-4ed0-9a08-6b479f66cc37"); 
+//		
+		EList<ActivationAction> activationList = reconfigurationPlan.getActivationAction();
+		for (ActivationAction activation : activationList) {
+			String componentName = activation.getComponent();
+			String address = deploy.getAddress(componentName);
+			String uuid = deploy.getUUID(componentName);
+			System.out.println("activate:"+componentName +":"+ address+":"+ uuid);
+//			activate(componentName, address, uuid);
+		}
+		
+		
+
+//		// drive messages from compression to lzcompression
+//		connect("Compression", "192.168.56.1", 9011,"udp://192.168.56.2:9001/lzcompression");
+//		// drive messages from decompression to lzdecompression
+//		connect("Decompression", "192.168.56.1", 9012, "udp://192.168.56.3:9001/lzdecompression");
+		EList<ConnectionAction> connectionList = reconfigurationPlan.getConnectionAction();
+		for (ConnectionAction connection : connectionList) {
+			String component = connection.getSrcComponent();
+			String address = deploy.getAddress(component);
+			int port = deploy.getControlPort(component);
+			String destination = connection.getDstComponent();
+			String dstAddress = deploy.getAddress(destination);
+			int dstPort = deploy.getApplicationPort(destination);
+			
+			System.out.println("Connect:"+component +":"+ address+":"+ port+" to "+"udp://"+dstAddress+":"+dstPort+"/"+destination.toLowerCase());
+
+//			connect(component, address, port, "udp://"+dstAddress+":"+dstPort+"/"+destination.toLowerCase());
+		}
+//		
+		
+		
+//		// transfer messages
+//		CircularFifoQueue<MyMessage> listMsgs = readMessages("RLECompression", "192.168.56.2", 9010);
+//		System.out.println("get "+listMsgs.size()+" msgs");
+//		writeMessage("LZCompression", listMsgs, "192.168.56.2", 9011);
+		EList<TransferAction> transferList = reconfigurationPlan.getTransferActions();
+		for (TransferAction transfer : transferList) {
+			StateTransferPoint point = transfer.getPoint();
+			
+			Variable srcVariable = point.getSrcVariable().get(0);
+			String srcComponent = srcVariable.getVariableHandle().getMofRef();
+			String address = deploy.getAddress(srcComponent);
+			int port = deploy.getControlPort(srcComponent);
+			System.out.println("read msgs from: "+srcComponent+":"+
+					address+":"+ port);
+//			CircularFifoQueue<MyMessage> listMsgs = readMessages(srcComponent,address, port);
+			
+			Variable dstVariable = (Variable)point.getDstVariable();
+			String dstComponent = dstVariable.getVariableHandle().getMofRef();
+			String dstAddress = deploy.getAddress(dstComponent);
+			int dstPort = deploy.getControlPort(dstComponent);
+			System.out.println("write msgs into: "+dstComponent+":"+
+					dstAddress+":"+ dstPort);
+//			writeMessage(dstComponent, listMsgs, dstAddress, dstPort);
+		}
+		
+		
+		
+//		// deactivate isolation
+//		isolate("LZCompression", "192.168.56.2", 9011, false);
+		EList<CombinationAction> combinationList = reconfigurationPlan.getCombinationActions();
+		for (CombinationAction combination : combinationList) {
+			String component = combination.getComponent();
+			String address = deploy.getAddress(component);
+			int port = deploy.getControlPort(component);
+
+			System.out.println("unisolate:"+component+":"+ address+":"+ port);
+//			isolate(component, address, port, false);
+		}
+		
+		
+//		// remove components
+//		// use JMX service in Karaf
+//		deactivate("RLECompression", "192.168.56.2", "80f6ff10-ff01-4ecd-8ae9-8cf9e1330648"); 
+//		deactivate("RLEDecompression", "192.168.56.3", "2a6246cc-052d-4ed0-9a08-6b479f66cc37"); 
+		EList<DeactivationAction> deactivationList = reconfigurationPlan.getDeactivationActions();
+		for (DeactivationAction deactivation: deactivationList) {
+			String component = deactivation.getComponent();
+			String address = deploy.getAddress(component);
+			String uuid = deploy.getUUID(component);
+			
+			System.out.println("deactivate:"+component +":"+ address+":"+ uuid);
+
+//			deactivate(component, address, uuid); 
+				
+		}
+		
+	}
+
+	public void isolate(String component, String address, int port, boolean bool) {
+		/*
+		 * connecto to component and send isolation command
+		 */
+
+		/*
+		 * search the location of component thanks to a development model
+		 */
+		// String address = "192.168.56.22";
+		// int port = 9022;
+
+		/*
+		 * connect to the isolated component
+		 */
+		ControlService controlService;
+		Registry registry;
+
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			controlService = (ControlService) (registry.lookup(component
+					+ "Controller"));
+			if (bool == true) 
+				controlService.isolate(false);
+			else controlService.isolate(true);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void connect(String srcComponent, String address, int port,
+			String toNewAddress) {
+
+		ControlService controlService;
+		Registry registry;
+
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			
+			controlService = (ControlService) (registry.lookup(srcComponent
+					+ "Controller"));
+
+			controlService.connect(toNewAddress);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public void activate(String bundleName, String host, String felixFrameworkUUID) {
+		System.out.println("start activate");
+		MBeanServerConnection server = connecToRemoteHost(host);
+		
+		long bundleid = installBundleOnRemoteHost(server, "file:./availability/"+bundleName.toLowerCase()+".jar", felixFrameworkUUID);
+		
+//		ExtBundle bundle = getBundle(server, felixFrameworkUUID, bundleName);
+//		startBundleOnRemoteHost(server, bundle.getBundleId(), felixFrameworkUUID); 
+		startBundleOnRemoteHost(server, bundleid, felixFrameworkUUID); 
+		System.out.println("finish activate");
+	}
+
+	public void deactivate(String bundleName, String host, String felixFrameworkUUID) {
+		MBeanServerConnection server = connecToRemoteHost(host);
+		ExtBundle bundle = getBundle(server, felixFrameworkUUID, bundleName);
+		uninstallBundleOnRemoteHost(server, bundle.getBundleId(), felixFrameworkUUID); 
+		
+	}
+
+	/**
+	 * create connection to remote host containing Karaf to manage bundle, etc
+	 * @param host ip address of host containing Karaf
+	 * @param karafHostName name of Karaf on the host, default: root
+	 * @param username user name uses Karaf, default: karaf
+	 * @param password password of user, default: karaf
+	 * @return MBeanConnection
+	 */
+	public MBeanServerConnection connecToRemoteHost(String host) {
+		String username = "karaf";
+		String password = "karaf";
+		String karafHostName = "root";
+		HashMap<String, String[]> environment = new HashMap<String, String[]>();
+		String[] credentials = new String[] { username, password };
+		environment.put("jmx.remote.credentials", credentials);
+		
+		JMXServiceURL url;
+		JMXConnector jmxc;
+		MBeanServerConnection mbsc = null;
+		
+		try {
+			url = new JMXServiceURL("service:jmx:rmi://"+host+":44444/jndi/rmi://"+host+":1099/karaf-"+karafHostName);
+			jmxc = JMXConnectorFactory.connect(url, environment);
+			mbsc = jmxc.getMBeanServerConnection();
+			System.out.println("Connect to Karaf ok");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Can not connecto to "+host);
+			e.printStackTrace();
+		}
+		return mbsc;
+	}
+	
+	public List<ExtBundle> getBundleListOnRemoteHost(MBeanServerConnection mbsc,
+			String felixFrameworkUUID) {
+		
+		List<ExtBundle> listRemoteBundle = new ArrayList<ExtBundle>();
+		ObjectName objState;
+		BundleStateMBean bundleState;
+		TabularData bundleData;
+		try {
+			objState = new ObjectName("osgi.core:type=bundleState,version=1.7,"
+			 		+ "framework=org.apache.felix.framework,uuid="+felixFrameworkUUID);
+			bundleState = JMX.newMBeanProxy(mbsc, objState,
+					 BundleStateMBean.class);
+			bundleData=bundleState.listBundles();
+			for (Object v : bundleData.values()) {
+				 CompositeData row = (CompositeData) v;
+				 
+	 			 ExtBundle extBundle = new ExtBundle();
+	 			 int i = 0;
+				 for (Object rv: row.values()) {
+					 i ++;
+					 switch (i) {
+					case 7:
+						extBundle.setBundleId(Integer.parseInt(rv.toString()));
+						break;
+					case 10:
+						extBundle.setBundleLocation(rv.toString());
+						break;
+					case 19:
+						extBundle.setState(rv.toString());
+						break;
+					case 20:
+						extBundle.setBundleName(rv.toString());
+						break;
+					case 21:
+						extBundle.setVersion(rv.toString());
+						break;
+					default:
+						break;
+					}
+				 }
+				 listRemoteBundle.add(extBundle);
+			 }
+		} catch (MalformedObjectNameException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return listRemoteBundle;
+	}
+	
+	public ExtBundle getBundle(MBeanServerConnection mbsc,
+			String felixFrameworkUUID, String bundleName) {
+		ExtBundle bundle = null;
+		
+		
+		 List<ExtBundle> listBundle = getBundleListOnRemoteHost(mbsc, felixFrameworkUUID);
+	
+		 for (ExtBundle bdl : listBundle) {
+			 if (bdl.getBundleName().equals(bundleName.toLowerCase())) {
+				 return bdl;
+			 }
+		 }
+		 
+		return bundle; 
+		
+	}
+	/**
+	 * install a bundle on a remote host 
+	 * @param mbsc
+	 * @param locationBundle bundle location on the host , e.g., file:/home/abc.jar
+	 * @param felixFrameworkUUID
+	 * @return id of installed bundle
+	 */
+	public long installBundleOnRemoteHost(MBeanServerConnection mbsc, 
+			String locationBundle,
+			String felixFrameworkUUID) {
+		long result = 0;
+		ObjectName mbeanName;
+		try {
+			mbeanName = new ObjectName("osgi.core:type=framework,version=1.7,"
+				 		+ "framework=org.apache.felix.framework,uuid="+felixFrameworkUUID);
+			FrameworkMBean osgiFrameworkProxy = JMX.newMBeanProxy(mbsc, mbeanName,
+					FrameworkMBean.class);
+		 long bundleNumber = osgiFrameworkProxy.installBundle(locationBundle);
+		 return bundleNumber;
+		} catch (MalformedObjectNameException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	public boolean startBundleOnRemoteHost(MBeanServerConnection mbsc, 
+			long bundleId,
+			String felixFrameworkUUID) {
+		boolean result = false;
+		ObjectName mbeanName;
+		try {
+			mbeanName = new ObjectName("osgi.core:type=framework,version=1.7,"
+				 		+ "framework=org.apache.felix.framework,uuid="+felixFrameworkUUID);
+			FrameworkMBean osgiFrameworkProxy = JMX.newMBeanProxy(mbsc, mbeanName,
+					FrameworkMBean.class);
+			System.out.println("start bundle id: "+bundleId);
+			osgiFrameworkProxy.startBundle(bundleId);
+			return true;
+		} catch (MalformedObjectNameException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param mbsc
+	 * @param bundleId
+	 * @param felixFrameworkUUID
+	 * @return
+	 */
+	public boolean uninstallBundleOnRemoteHost(MBeanServerConnection mbsc, 
+			long bundleId,
+			String felixFrameworkUUID) {
+		boolean result = false;
+		ObjectName mbeanName;
+		try {
+			mbeanName = new ObjectName("osgi.core:type=framework,version=1.7,"
+				 		+ "framework=org.apache.felix.framework,uuid="+felixFrameworkUUID);
+			FrameworkMBean osgiFrameworkProxy = JMX.newMBeanProxy(mbsc, mbeanName,
+					FrameworkMBean.class);
+			osgiFrameworkProxy.uninstallBundle(bundleId);
+			return true;
+		} catch (MalformedObjectNameException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public CircularFifoQueue<MyMessage> readMessages(String component,
+			String address, int port) {
+		/*
+		 * search location of component
+		 */
+
+
+
+		/*
+		 * connecto to component and read messages
+		 */
+		ControlService service;
+		Registry registry;
+		CircularFifoQueue<MyMessage> msg = new CircularFifoQueue<MyMessage>(50);
+		System.setProperty("java.security.policy", "java.security.AllPermission");
+		System.setProperty("java.rmi.server.hostname", address);
+		
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			service = (ControlService) (registry.lookup(component+"Controller"));
+			msg = service.readMessages();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return msg;
+	}
+
+	public void writeMessage(String component,
+			CircularFifoQueue<MyMessage> msg, String address, int port) {
+		/*
+		 * todo: search location of component
+		 */
+
+
+
+		/*
+		 * connecto to component and write messages
+		 */
+		ControlService service;
+		Registry registry;
+
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			service = (ControlService) (registry.lookup(component+"Controller"));
+
+			service.writeMessages(msg);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	class ReconfiguratorServiceImpl extends UnicastRemoteObject implements
+			ControlService, Serializable {
+
+		private static final long serialVersionUID = 1L;
+		int thisPort;
+		String thisAddress;
+		Registry registry; // rmi registry for lookup the remote objects.
+
+		public ReconfiguratorServiceImpl(String add, int port)
+				throws RemoteException {
+			this.thisAddress = add;
+			this.thisPort = port;
+//			System.setProperty("java.security.policy", "java.security.AllPermission");
+//			System.setProperty("java.rmi.server.hostname", "192.168.56.1");
+			try {
+				// create the registry and bind the name and object.
+				registry = LocateRegistry.createRegistry(thisPort);
+				registry.rebind("Reconfigurator", this);
+				
+			} catch (RemoteException e) {
+				throw e;
+			}
+		}
+
+		@Override
+		public void informBeginning(String transactionID) {
+			// TODO Auto-generated method stub
+
+			/*
+			 * begin a transaction
+			 */
+			System.out.println("Reconfigurator receives -> Beginning of transaction: "+transactionID);
+			transactionList.add(transactionID);
+		}
+
+		@Override
+		public void informEnd(String transactionID) {
+			// TODO Auto-generated method stub
+
+			/*
+			 * end the transaction
+			 */
+			System.out.println("Reconfigurator receives -> End of transaction: "+transactionID);
+			transactionList.remove(transactionList.indexOf(transactionID));
+		}
+
+		@Override
+		public void isolate(boolean bool) {
+			// TODO Auto-generated method stub
+			// no actions
+			
+		}
+
+		@Override
+		public void activate(String component) {
+			// TODO Auto-generated method stub
+			// no actions
+		}
+
+		@Override
+		public void deactivate(String component) {
+			// TODO Auto-generated method stub
+			// no actions
+		}
+
+		@Override
+		public CircularFifoQueue<MyMessage> readMessages()
+				throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void writeMessages(CircularFifoQueue<MyMessage> msg)
+				throws RemoteException {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void connect(String address) throws RemoteException {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+
+	
+}

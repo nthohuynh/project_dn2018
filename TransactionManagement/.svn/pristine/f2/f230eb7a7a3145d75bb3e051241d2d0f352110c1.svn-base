@@ -1,0 +1,58 @@
+package receiver;
+
+import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+import org.apache.felix.ipojo.annotations.Component;
+
+import control.ReceiverInInterceptor;
+import control.ReceiverOutInterceptor;
+
+
+import service.DecompressionService;
+import service.SendingService;
+
+
+@Component(name="Receiver")
+public class Receiver {
+	Server server;
+	String fullDecompressionAddress = "http://localhost:9014/decompression";
+	
+	JaxWsServerFactoryBean svrFactory; 
+	JaxWsProxyFactoryBean decompressionFactory ;
+	DecompressionService decompress;
+	public Receiver() {
+		System.out.println("start Receiver");
+		SendingImpl sendingImpl = new SendingImpl();
+		svrFactory = new JaxWsServerFactoryBean();
+		svrFactory.setServiceClass(SendingService.class);
+		svrFactory.setAddress("http://localhost:9013/sending");
+		svrFactory.setServiceBean(sendingImpl);
+		svrFactory.getInInterceptors().add(new ReceiverInInterceptor());
+		
+		server = svrFactory.create();
+		server.start();
+		
+		//connect to decompression
+		decompressionFactory = new JaxWsProxyFactoryBean();
+		decompressionFactory.setServiceClass(DecompressionService.class);
+		decompressionFactory.setAddress("http://localhost:9014/decompression");
+		decompressionFactory.getOutInterceptors().add(new ReceiverOutInterceptor());
+		decompress = (DecompressionService)decompressionFactory.create();
+		System.out.println(decompress.decompress("1T1i2t1o1t1a1t1u"));
+	}
+	public static void main(String arg[]) {
+		new Receiver();
+	}
+
+	class SendingImpl implements SendingService {
+
+		@Override
+		public void send(String str) {
+			// TODO Auto-generated method stub
+			System.out.println("at receiver: " + str);
+			System.out.println(decompress.decompress(new String(str)));
+		}
+
+	}
+}

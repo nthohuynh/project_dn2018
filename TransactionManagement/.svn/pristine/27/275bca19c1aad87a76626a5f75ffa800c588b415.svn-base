@@ -1,0 +1,15 @@
+package service;
+
+import java.rmi.RemoteException;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+
+import utils.MyMessage;
+
+public interface TransferService extends java.rmi.Remote{
+	
+	CircularFifoQueue <MyMessage> readMessages() throws RemoteException;
+	
+	void writeMessages(CircularFifoQueue <MyMessage> msg) throws RemoteException;
+
+}

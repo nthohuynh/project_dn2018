@@ -1,0 +1,6 @@
+
+Private-Package:  \
+	reconfigurator
+Include-Resource: \
+	resources
+Bundle-Name: Reconfigurator

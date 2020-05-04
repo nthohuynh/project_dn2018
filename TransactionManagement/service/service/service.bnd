@@ -1,0 +1,3 @@
+Bundle-Name: Service
+Export-Package:  \
+	service

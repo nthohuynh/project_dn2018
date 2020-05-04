@@ -1,0 +1,7 @@
+
+Private-Package:  \
+	compression,\
+	compression.control
+Include-Resource: \
+	resources
+Bundle-Name: Compression

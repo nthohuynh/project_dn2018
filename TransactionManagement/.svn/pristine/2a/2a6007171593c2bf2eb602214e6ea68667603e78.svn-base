@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="ASCII"?>
+<reconfigurationPlan:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:reconfigurationPlan="http://reconfigurationplan" xmlns:statetransfer.org="http://statetransfer.org">
+  <isolation>
+    <actions component="VE1"/>
+    <actions component="AE1"/>
+    <actions component="TE1"/>
+  </isolation>
+  <activation>
+    <actions component="VE2"/>
+    <actions component="AE2"/>
+    <actions component="TE2"/>
+    <actions component="VD2"/>
+    <actions component="AD2"/>
+    <actions component="TD2"/>
+  </activation>
+  <connection>
+    <actions srcComponent="VideoEncoding" newComponent="VE2"/>
+    <actions srcComponent="AudioEncoding" newComponent="AE2"/>
+    <actions srcComponent="TextEncoding" newComponent="TE2"/>
+    <actions srcComponent="VideoDecoding" newComponent="VD2"/>
+    <actions srcComponent="AudioDecoding" newComponent="AD2"/>
+    <actions srcComponent="TextDecoding" newComponent="TD2"/>
+  </connection>
+  <transfer>
+    <actions>
+      <point>
+        <srcVariable name="">
+          <variableHandle mofRef="VE1"/>
+        </srcVariable>
+        <dstVariable xsi:type="statetransfer.org:Variable" name="">
+          <variableHandle mofRef="VE2"/>
+        </dstVariable>
+      </point>
+    </actions>
+    <actions>
+      <point>
+        <srcVariable id="" name="AE1">
+          <variableHandle mofRef="AE1"/>
+        </srcVariable>
+        <dstVariable xsi:type="statetransfer.org:Variable" name="AE2">
+          <variableHandle mofRef="AE2"/>
+        </dstVariable>
+      </point>
+    </actions>
+    <actions>
+      <point>
+        <srcVariable name="TE1">
+          <variableHandle mofRef="TE1"/>
+        </srcVariable>
+        <dstVariable xsi:type="statetransfer.org:Variable" name="TE2">
+          <variableHandle mofRef="TE2"/>
+        </dstVariable>
+      </point>
+    </actions>
+  </transfer>
+  <reintegration>
+    <actions component="VE2"/>
+    <actions component="AE2"/>
+    <actions component="TE2"/>
+  </reintegration>
+  <deactivation>
+    <actions component="VE1"/>
+    <actions component="AE1"/>
+    <actions component="TE1"/>
+    <actions component="VD1"/>
+    <actions component="AD1"/>
+    <actions component="TD1"/>
+  </deactivation>
+</reconfigurationPlan:Plan>

@@ -1,0 +1,23 @@
+package service;
+
+import java.rmi.RemoteException;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+
+import utils.MyMessage;
+
+public interface ControlService {
+	
+	
+	void isolate(boolean bool);
+	void combine(boolean bool);
+	
+	void activate(String component);
+	void deactivate(String component);
+	
+	void informBeginning(String transactionID);
+	void informEnding(String transactionID);
+	//void setMessage(MyMessage msg) throws RemoteException;
+	
+	//void setNioDatagramSession(NioDatagramSession nio) throws RemoteException;
+}

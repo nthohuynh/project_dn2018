@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="statetransfer" nsURI="http://statetransfer.org" nsPrefix="statetransfer.org">
+  <eClassifiers xsi:type="ecore:EClass" name="StateTransferModel">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="points" upperBound="-1"
+        eType="#//StateTransferPoint" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StateTransferPoint">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="srcVariable" ordered="false"
+        upperBound="-1" eType="#//Variable" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dstVariable" lowerBound="1"
+        eType="#//Element" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="function" eType="#//StateTransferFunction"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IntermediateComponent" eSuperTypes="#//Element">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Element" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="StateTransferFunction">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="expression" lowerBound="1"
+        eType="#//Expression" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Expression" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Type" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="PrimitiveType" eSuperTypes="#//Type">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//PrimitiveTypeEnum"
+        defaultValueLiteral="Integer"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ObjectType" eSuperTypes="#//Type">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="class" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ObjectHandle">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mofRef" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Variable" eSuperTypes="#//Element">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" lowerBound="1" eType="#//Type"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variableHandle" lowerBound="1"
+        eType="#//ObjectHandle" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PrimitiveTypeEnum">
+    <eLiterals name="Integer" literal="Integer"/>
+    <eLiterals name="Float" value="1"/>
+    <eLiterals name="String" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Operation">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="&lt;p>Enumerates operations available in basic constraint language: logNot (logical negation), logAnd (logical conjunction), logOr (logical disjunction), logImplies (logical implication), logXor (logical exclusive-or), arithPlus (arithmetic addition), arithMinus (arithmetic subtraction), arithNeg (arithmetic negation), arithMult (arithmetic multiplication), arithDiv (arithmetic division), strConc (string concatenation), eq (equality), lte (less than or equal), gte (greater than or equal), lt (less than), gt (greater than), isDefined (checks if value is not bottom), isUndefined (checks if value is bottom)&lt;/p>"/>
+    </eAnnotations>
+    <eLiterals name="arithPlus" value="6">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Arithmetic addition&lt;/p>"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="arithMinus" value="7">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Arithmetic subtraction&lt;/p>"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="arithNeg" value="8">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Arithmetic negation&lt;/p>"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="arithMult" value="9">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Arithmetic multiplication&lt;/p>"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="arithDev" value="10">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Arithmetic division&lt;/p>"/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OperationExpression" abstract="true"
+      eSuperTypes="#//Expression">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="&lt;p>An expression that represents operations on given subexpressions (arguments). Operations include logical, arithmetic, relational operations, and two predicates.&lt;/p>"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="argument" ordered="false"
+        upperBound="-1" eType="#//Expression" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Expressions for the arguments of the operation to be called.&lt;/p>"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VariableExpr" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variableRef" lowerBound="1"
+        eType="#//Variable"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DefaultOperationExpression" eSuperTypes="#//OperationExpression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultOperation" ordered="false"
+        lowerBound="1" eType="#//Operation">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="&lt;p>Operation to be called.&lt;/p>"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CustomOperationExpression" eSuperTypes="#//OperationExpression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="customOperation" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Constant" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+</ecore:EPackage>

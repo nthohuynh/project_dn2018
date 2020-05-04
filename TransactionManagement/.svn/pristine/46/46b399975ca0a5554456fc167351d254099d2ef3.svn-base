@@ -1,0 +1,7 @@
+
+Private-Package:  \
+	decompression,\
+	decompression.control
+Include-Resource: \
+	resources
+Bundle-Name: Decompression

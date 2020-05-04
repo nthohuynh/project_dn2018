@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ASCII"?>
+<statetransfer.org:StateTransferModel
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:statetransfer.org="http://statetransfer.org"
+    xsi:schemaLocation="http://statetransfer.org ../../models/stateTransfer.ecore">
+  <points>
+    <srcVariable
+        name="">
+      <variableHandle
+          mofRef="VE1"/>
+    </srcVariable>
+    <dstVariable
+        xsi:type="statetransfer.org:Variable"
+        name="">
+      <variableHandle
+          mofRef="VE2"/>
+    </dstVariable>
+  </points>
+  <points>
+    <srcVariable
+        id=""
+        name="AE1">
+      <variableHandle
+          mofRef="AE1"/>
+    </srcVariable>
+    <dstVariable
+        xsi:type="statetransfer.org:Variable"
+        name="AE2">
+      <variableHandle
+          mofRef="AE2"/>
+    </dstVariable>
+  </points>
+  <points>
+    <srcVariable
+        name="TE1">
+      <variableHandle
+          mofRef="TE1"/>
+    </srcVariable>
+    <dstVariable
+        xsi:type="statetransfer.org:Variable"
+        name="TE2">
+      <variableHandle
+          mofRef="TE2"/>
+    </dstVariable>
+  </points>
+</statetransfer.org:StateTransferModel>

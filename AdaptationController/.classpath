@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="libs/deployment.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.core.resources_3.7.101.v20120125-1505.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.emf.common_2.10.1.v20150123-0348.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.emf.ecore_2.7.0.v20120127-1122.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.emf.ecore.xmi_2.10.2.v20150123-0348.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.emf.edit_2.10.1.v20150123-0452.jar"/>
+	<classpathentry kind="lib" path="libs/commons-collections4-4.0.jar"/>
+	<classpathentry kind="lib" path="libs/acme.jar"/>
+	<classpathentry kind="lib" path="libs/cvl.jar"/>
+	<classpathentry kind="lib" path="libs/reconfigurationPlan.jar"/>
+	<classpathentry kind="lib" path="libs/mina-core-2.0.9.jar"/>
+	<classpathentry kind="lib" path="libs/org.apache.aries.jmx-1.1.5.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

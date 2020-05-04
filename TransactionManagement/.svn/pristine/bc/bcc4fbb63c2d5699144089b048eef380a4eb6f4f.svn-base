@@ -1,0 +1,53 @@
+package rlecompression;
+
+import java.util.ArrayList;
+
+import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+import org.apache.felix.ipojo.annotations.Component;
+
+import control.RLECompressionOutInterceptor;
+import service.CompressionService;
+import service.SendingService;
+
+@Component(name = "Compression")
+public class RLECompression {
+	Server server;
+	JaxWsServerFactoryBean svrFactory;
+
+	public ArrayList<String> treatedMessageList;
+	
+	public RLECompression() {
+		System.out.println("start Compression");
+		CompressionImpl sendingImpl = new CompressionImpl();
+		svrFactory = new JaxWsServerFactoryBean();
+		svrFactory.setServiceClass(CompressionService.class);
+		svrFactory.setAddress("http://localhost:9012/compression");
+		svrFactory.setServiceBean(sendingImpl);
+		svrFactory.getOutInterceptors().add(new RLECompressionOutInterceptor());
+		server = svrFactory.create();
+		server.start();
+	}
+
+	class CompressionImpl implements CompressionService {
+		public String compress(String source) {
+			//treatedMessageList.add(tId);
+			// TODO Auto-generated method stub
+			StringBuffer dest = new StringBuffer();
+			for (int i = 0; i < source.length(); i++) {
+				int runLength = 1;
+				while (i + 1 < source.length()
+						&& source.charAt(i) == source.charAt(i + 1)) {
+					runLength++;
+					i++;
+				}
+				dest.append(runLength);
+				dest.append(source.charAt(i));
+			}
+			return dest.toString();
+		}
+	}
+	public static void main(String args[]) {
+		new RLECompression();
+	}
+}

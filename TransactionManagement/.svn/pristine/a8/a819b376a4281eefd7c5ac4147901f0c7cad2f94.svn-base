@@ -1,0 +1,206 @@
+package planner;
+import java.util.ArrayList;
+
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+
+import ACME.Attachment;
+import ACME.Binding;
+import ACME.Link;
+import ACME.ACMEPackage;
+import ACME.ComponentInstance;
+import ACME.Component;
+import ACME.Connector;
+import ACME.Representation;
+
+public class BaseModel {
+	ACME.System sys = null;
+	public BaseModel(String baseModelFile) {
+		
+		ACMEPackage.eINSTANCE.eClass();
+		Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
+		try {
+			//registry extent part of model file ex: *.variability
+			reg.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
+			URI uri = URI.createFileURI(baseModelFile);
+			ResourceSet resourceSet = new ResourceSetImpl();
+			Resource resource = resourceSet.getResource(uri, true);
+			
+			//get root of variability model 
+			sys = (ACME.System) resource.getContents().get(0);
+		} catch (Exception e){
+		}
+	}
+	
+	public ACME.System getSys() {
+		return this.sys;
+	}
+	public ArrayList<ComponentInstance> getParentComponentList(){
+		ArrayList<ComponentInstance> componentList = new ArrayList<ComponentInstance>();
+		componentList.addAll(sys.getComponentDeclaration());
+		return componentList;
+	}
+	
+	public ArrayList<ComponentInstance> getComponentList(ACME.System sys) {
+		ArrayList<ComponentInstance> componentList = new ArrayList<ComponentInstance>();
+		componentList.addAll(sys.getComponentDeclaration());
+		for (int i = 0; i < sys.getComponentDeclaration().size(); i++) {
+			Component component = sys.getComponentDeclaration().get(i);
+			if (component.getRepresentations() != null) {
+				for (int j = 0;j < component.getRepresentations().size(); j++) {
+					Representation representation = component.getRepresentations().get(j);
+					if (representation.getSystems() != null) {
+						for (int k = 0; k < representation.getSystems().size(); k++) {
+							ACME.System system = representation.getSystems().get(k);
+							componentList.addAll(getComponentList(system));
+						}
+					}
+				}
+			}
+		}
+		return componentList;
+	}
+	public ArrayList<Connector> getConnectorList(ACME.System sys) {
+		ArrayList<Connector> connectorList = new ArrayList<Connector>();
+		connectorList.addAll(sys.getConnectorDeclaration());
+		for (int i = 0; i < sys.getComponentDeclaration().size(); i++) {
+			Component component = sys.getComponentDeclaration().get(i);
+			if (component.getRepresentations() != null) {
+				for (int j = 0;j < component.getRepresentations().size(); j++) {
+					Representation representation = component.getRepresentations().get(j);
+					if (representation.getSystems() != null) {
+						for (int k = 0; k < representation.getSystems().size(); k++) {
+							ACME.System system = representation.getSystems().get(k);
+							connectorList.addAll(getConnectorList(system));
+						}
+					}
+				}
+			}
+		}
+		return connectorList;
+	}
+
+	public ArrayList<Attachment> getAttchmentList(ACME.System sys) {
+		ArrayList<Attachment> attachmentList = new ArrayList<Attachment>();
+		
+		for (Link att : sys.getAttachement()) {
+			attachmentList.add((Attachment)att);
+		}
+		
+		for (int i = 0; i < sys.getComponentDeclaration().size(); i++) {
+			Component component = sys.getComponentDeclaration().get(i);
+			if (component.getRepresentations() != null) {
+				for (int j = 0;j < component.getRepresentations().size(); j++) {
+					Representation representation = component.getRepresentations().get(j);
+					if (representation.getSystems() != null) {
+						for (int k = 0; k < representation.getSystems().size(); k++) {
+							ACME.System system = representation.getSystems().get(k);
+							attachmentList.addAll(getAttchmentList(system));
+						}
+					}
+				}
+			}
+		}
+		return attachmentList;
+	}
+
+	public ArrayList<Binding> getBindingList(ACME.System sys) {
+		ArrayList<Binding> bindingList = new ArrayList<Binding>();
+		for (Link bind : sys.getBinding()) {
+			bindingList.add((Binding)bind);
+		}
+		for (Component component : sys.getComponentDeclaration()) {
+			if (component.getRepresentations() != null) {
+				for (int j = 0;j < component.getRepresentations().size(); j++) {
+					Representation representation = component.getRepresentations().get(j);
+					if (representation.getSystems() != null) {
+						for (ACME.System system : representation.getSystems()) {
+							bindingList.addAll(getBindingList(system));
+						}
+					}
+				}
+			}
+		}
+		return bindingList;
+	}
+	
+	
+	//according to new connection class
+	// all connection can be listed
+	public ArrayList<Connection> getAllConnection() {
+		ArrayList<Connection> connectionList = new ArrayList<Connection>();
+		
+		ArrayList<Binding> bdList = getBindingList(sys);
+		for (Binding bd : bdList) {
+			Connection cn = new Connection();
+			cn.setSrc(bd.getCompSrc());
+			cn.setDst(bd.getCompDest());
+			connectionList.add(cn);
+			
+		}
+		
+		
+		ArrayList<Attachment> prl = getAttchmentList(sys);
+		for (Attachment c : prl) {
+			if (c.getRole().equals("callee")) {
+				String dst = c.getComp();
+				String connector = c.getCon();
+				
+				for (Attachment s : getAttchmentList(sys)) {
+					if (s.getRole().equals("caller") && s.getCon().equals(connector)) {
+						String src = s.getComp();
+						Connection cn = new Connection();
+						cn.setSrc(src);
+						cn.setDst(dst);
+						connectionList.add(cn);
+					}
+				}
+			}
+			
+		}
+		return connectionList;
+	}
+	public static void main(String arg[]) {
+		
+		BaseModel bm = new BaseModel("modelinstances//encodingsystem//ESBaseModel.xmi");
+		ArrayList<Connection> prl = bm.getAllConnection();
+		for (Connection c : prl) {
+						System.out.println(c.src+" to "+c.newAdd);
+			
+		}
+	}
+	
+	
+}
+class Connection {
+	String src;
+	String oldAdd;
+	String newAdd;
+	public Connection() {
+		
+	}
+	public String getSrc() {
+		return src;
+	}
+	public void setSrc(String src) {
+		this.src = src;
+	}
+	public String getOldAdd() {
+		return oldAdd;
+	}
+	public void setOldAdd(String oldAdd) {
+		this.oldAdd = oldAdd;
+	}
+	
+	public String getNewAdd() {
+		return newAdd;
+	}
+	public void setDst(String newAdd) {
+		this.newAdd = newAdd;
+	}
+
+}

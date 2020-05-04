@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ASCII"?>
+<statetransfer.org:StateTransferModel
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:statetransfer.org="http://statetransfer.org"
+    xsi:schemaLocation="http://statetransfer.org ../../models/stateTransfer.ecore">
+  <points id="1">
+    <srcVariable
+        id=""
+        name="buffer">
+      <variableHandle
+          mofRef="RLECompression"/>
+    </srcVariable>
+    <dstVariable
+        xsi:type="statetransfer.org:Variable"
+        name="buffer">
+      <variableHandle
+          mofRef="LZCompression"/>
+    </dstVariable>
+  </points>
+</statetransfer.org:StateTransferModel>

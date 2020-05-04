@@ -1,0 +1,75 @@
+package planner;
+import java.io.File;
+import java.util.ArrayList;
+
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+
+import cvl.ChoiceResolution;
+import cvl.VPackage;
+import cvl.VSpecResolution;
+import cvl.cvlPackage;
+
+
+public class ResolutionModel {
+	
+	VPackage pack = null;
+	ChoiceResolution root;
+	public ResolutionModel(String resolutionModelFileName) {
+		Resource resource = null;
+		cvlPackage.eINSTANCE.eClass();
+		Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
+		try {
+			//registry extent part of model file ex: *.variability
+			reg.getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
+		} catch (Exception e){
+		}
+		ResourceSet resourceSet = new ResourceSetImpl();
+		String filename = new File(resolutionModelFileName).getAbsolutePath();
+		URI uri = URI.createFileURI(filename);
+		resource = resourceSet.getResource(uri, true);
+		pack = (VPackage)  resource.getContents().get(0);
+		//EcoreUtil.resolveAll(resourceSet);
+		root = (ChoiceResolution) pack.getPackageElement().get(0);
+	}
+
+	private ArrayList<VSpecResolution> readResolutionModel(VSpecResolution vSpecResolutionRoot) {
+		ArrayList<VSpecResolution> vSpecResolutionList = new ArrayList<VSpecResolution>();
+		vSpecResolutionList.add(vSpecResolutionRoot);
+		
+		for (int i = 0; i < vSpecResolutionRoot.getChild().size(); i++) {
+			VSpecResolution vSpecResolutionChild = vSpecResolutionRoot.getChild().get(i); 
+			vSpecResolutionList.addAll(readResolutionModel(vSpecResolutionChild));
+		}
+		return vSpecResolutionList;
+	}
+	public ArrayList<VSpecResolution> getVSPecResolutionList() {
+		return readResolutionModel(root);
+	}
+	
+	private ArrayList<VSpecResolution> readPositiveResolution(VSpecResolution vSpecResolutionRoot) {
+		ArrayList<VSpecResolution> vSpecResolutionList = new ArrayList<VSpecResolution>();
+		if (((ChoiceResolution)vSpecResolutionRoot).isDecision()) {
+			vSpecResolutionList.add(vSpecResolutionRoot);
+			for (int i = 0; i < vSpecResolutionRoot.getChild().size(); i++) {
+				VSpecResolution vSpecResolutionChild = vSpecResolutionRoot.getChild().get(i); 
+				vSpecResolutionList.addAll(readPositiveResolution(vSpecResolutionChild));
+			}
+		}
+		return vSpecResolutionList;
+	}
+	public ArrayList<VSpecResolution> getPositiveResolutionList() {
+		return readPositiveResolution(root);
+	}
+	public static void main(String arg[]) {
+		ResolutionModel rsl = new ResolutionModel("modelinstances//encodingsystem//ESResolutionModel1.xmi");
+		
+		ArrayList<VSpecResolution> list = rsl.getPositiveResolutionList();
+		for (VSpecResolution r : list) {
+			System.out.println(r.getResolvedVSpec().getName());
+		}
+	}
+}

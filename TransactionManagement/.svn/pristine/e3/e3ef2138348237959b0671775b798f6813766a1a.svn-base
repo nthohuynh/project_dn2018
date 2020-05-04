@@ -1,0 +1,639 @@
+package rlecompression;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
+import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.cxf.Bus;
+import org.apache.cxf.binding.soap.SoapMessage;
+import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.StringUtils;
+import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.helpers.LoadingByteArrayOutputStream;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+import org.apache.cxf.message.Exchange;
+import org.apache.cxf.message.ExchangeImpl;
+import org.apache.cxf.message.Message;
+import org.apache.cxf.message.MessageImpl;
+import org.apache.cxf.service.model.EndpointInfo;
+import org.apache.cxf.transport.AbstractDestination;
+import org.apache.cxf.transport.AbstractTransportFactory;
+import org.apache.cxf.transport.Conduit;
+import org.apache.cxf.transport.Destination;
+import org.apache.cxf.transport.DestinationFactory;
+import org.apache.cxf.workqueue.AutomaticWorkQueue;
+import org.apache.cxf.workqueue.WorkQueueManager;
+import org.apache.cxf.ws.addressing.AttributedURIType;
+import org.apache.cxf.ws.addressing.EndpointReferenceType;
+import org.apache.felix.ipojo.Factory;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Property;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.AttributeKey;
+import org.apache.mina.core.session.IdleStatus;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.handler.stream.StreamIoHandler;
+import org.apache.mina.transport.socket.DatagramSessionConfig;
+import org.apache.mina.transport.socket.nio.NioDatagramAcceptor;
+import org.apache.mina.transport.socket.nio.NioDatagramSession;
+
+import rlecompression.control.Controller;
+import rlecompression.control.RLECompressionInInterceptor;
+import rlecompression.control.RLECompressionOutInterceptor;
+import service.CompressionService;
+import utils.IoSessionInputStream;
+import utils.IoSessionOutputStream;
+import utils.MyMessage;
+
+@Component(name = "RLECompression")
+public class RLECompression {
+	@Requires
+	private Factory[] factories;
+	
+	Server server;
+	JaxWsServerFactoryBean svrFactory;
+
+	
+	public boolean enableProcess = true;
+	public CircularFifoQueue<MyMessage> buffer;
+	
+	public RLECompression() {
+		System.out.println("start RLECompression");
+		buffer = new CircularFifoQueue<MyMessage>(50);
+
+		Controller controller = new Controller();
+		controller.setFactory(factories);
+		
+		
+		CompressionImpl sendingImpl = new CompressionImpl();
+		svrFactory = new JaxWsServerFactoryBean();
+		MyDestinationFactory destFac = new MyDestinationFactory();
+		svrFactory.setDestinationFactory(destFac);
+
+		svrFactory.setServiceClass(CompressionService.class);
+		svrFactory.setAddress("udp://192.168.56.2:9000/rlecompression"); //on window xp
+		svrFactory.setServiceBean(sendingImpl);
+//		svrFactory.getInInterceptors().add(new RLECompressionInInterceptor());
+		
+		svrFactory.getOutInterceptors().add(new RLECompressionOutInterceptor());
+		
+		
+		
+		server = svrFactory.create();
+		server.start();
+	}
+	@Property(name = "enableProcess")
+	public void setEnableProcess(boolean enableProcess) {
+		this.enableProcess = enableProcess;
+	}
+	
+	
+	class CompressionImpl implements CompressionService {
+		public String compress(String source) {
+			System.out.println(source);
+			
+			StringBuffer dest = new StringBuffer();
+			for (int i = 0; i < source.length(); i++) {
+				int runLength = 1;
+				while (i + 1 < source.length()
+						&& source.charAt(i) == source.charAt(i + 1)) {
+					runLength++;
+					i++;
+				}
+				dest.append(runLength);
+				dest.append(source.charAt(i));
+			}
+			
+			//delay in traite
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return dest.toString();
+		}
+	}
+	
+	
+	@SuppressWarnings("serial")
+	@XmlRootElement
+	class MyDestination extends AbstractDestination implements Serializable {
+		private final Logger LOG = LogUtils.getL7dLogger(MyDestination.class);
+		private final AttributeKey KEY_IN = new AttributeKey(
+				StreamIoHandler.class, "in");
+		private final AttributeKey KEY_OUT = new AttributeKey(
+				StreamIoHandler.class, "out");
+
+		NioDatagramAcceptor acceptor;
+		AutomaticWorkQueue queue;
+		volatile MulticastSocket mcast;
+		InetSocketAddress isa = null;
+
+		public MyDestination(Bus b, EndpointReferenceType ref, EndpointInfo ei) {
+			super(b, ref, ei);
+			try {
+				URI uri = new URI(this.getAddress().getAddress().getValue());
+
+				if (StringUtils.isEmpty(uri.getHost())) {
+					String s = uri.getSchemeSpecificPart();
+					if (s.startsWith("//:")) {
+						s = s.substring(3);
+					}
+					if (s.indexOf('/') != -1) {
+						s = s.substring(0, s.indexOf('/'));
+					}
+					int port = Integer.parseInt(s);
+					isa = new InetSocketAddress(port);
+				} else {
+					isa = new InetSocketAddress(uri.getHost(), uri.getPort());
+				}
+
+				acceptor = new NioDatagramAcceptor();
+				acceptor.setHandler(new UDPIOHandler());
+
+				acceptor.setDefaultLocalAddress(isa);
+				DatagramSessionConfig dcfg = acceptor.getSessionConfig();
+				dcfg.setReadBufferSize(64 * 1024);
+				dcfg.setSendBufferSize(64 * 1024);
+				dcfg.setReuseAddress(true);
+				acceptor.bind();
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				throw new RuntimeException(ex);
+			}
+
+			Thread th = new Thread() {
+				@SuppressWarnings("unused")
+				public void run() {
+					while (true) {
+						try {
+							Thread.sleep(1000);
+
+							if ((!buffer.isEmpty()) && enableProcess) {
+
+//								System.out.println("get in buffer to process");
+								MyMessage myMsg = buffer.poll();
+								final MessageImpl m = new MessageImpl();
+								Exchange exchange = new ExchangeImpl();
+								exchange.setDestination(MyDestination.this);
+								m.setDestination(MyDestination.this);
+								exchange.setInMessage(m);
+
+								byte[] byteInputStream = myMsg.byteInputStream;
+								NioDatagramSession niosession = myMsg.session;
+
+								System.out.println();
+								// ByteArrayInputStream in_t = new
+								// ByteArrayInputStream(byteInputStream);
+								IoBuffer ioBuffer = IoBuffer.allocate(256);
+								ioBuffer.setAutoExpand(true);
+								ioBuffer.mark();
+								ioBuffer.put(byteInputStream);
+								ioBuffer.reset();
+								IoSessionInputStream ioses = new IoSessionInputStream();
+								ioses.setBuffer(ioBuffer);
+								InputStream in = ioses;
+
+								m.setContent(InputStream.class, in);
+								IoSession session = (IoSession) niosession; // new
+																			// NioDatagramSession();
+
+								SocketAddress remoteAddress = session
+										.getRemoteAddress();
+								SocketAddress localAddress = isa; // session.getLocalAddress();
+
+								IoSession newsession = null;
+								newsession = acceptor.newSession(remoteAddress,
+										localAddress);
+
+								OutputStream out = new IoSessionOutputStream(
+										newsession);
+								out = new UDPDestinationOutputStream(out);
+								m.put(UDPConnectionInfo.class,
+										new UDPConnectionInfo(newsession, out,
+												in));
+
+								getMessageObserver().onMessage(m);
+
+							}
+
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							// e.printStackTrace();
+						}
+					}
+				}
+			};
+			th.start();
+		}
+
+		@XmlRootElement
+		class MCastListener implements Runnable {
+			public void run() {
+				while (true) {
+					if (mcast == null) {
+						return;
+					}
+					try {
+						byte bytes[] = new byte[64 * 1024];
+						final DatagramPacket p = new DatagramPacket(bytes,
+								bytes.length);
+
+						mcast.receive(p);
+
+						LoadingByteArrayOutputStream out = new LoadingByteArrayOutputStream() {
+							public void close() throws IOException {
+								super.close();
+								final DatagramPacket p2 = new DatagramPacket(
+										getRawBytes(), 0, this.size(),
+										p.getSocketAddress());
+								mcast.send(p2);
+							}
+						};
+
+						UDPConnectionInfo info = new UDPConnectionInfo(null,
+								out, new ByteArrayInputStream(bytes, 0,
+										p.getLength()));
+
+						final MessageImpl m = new MessageImpl();
+						final Exchange exchange = new ExchangeImpl();
+						exchange.setDestination(MyDestination.this);
+						m.setDestination(MyDestination.this);
+						exchange.setInMessage(m);
+						m.setContent(InputStream.class, info.in);
+						m.put(UDPConnectionInfo.class, info);
+						queue.execute(new Runnable() {
+							public void run() {
+
+								getMessageObserver().onMessage(m);
+							}
+						});
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				}
+			}
+		}
+
+		/** {@inheritDoc} */
+		@Override
+		public Conduit getInbuiltBackChannel(Message inMessage) {
+			Message my = inMessage;
+			if (my.getExchange().isOneWay()) {
+				return null;
+			}
+			final UDPConnectionInfo info = inMessage
+					.get(UDPConnectionInfo.class);
+
+			AbstractBackChannelConduit backChannelConduit = new AbstractBackChannelConduit() {
+				public void prepare(Message message) throws IOException {
+					message.setContent(OutputStream.class, info.out);
+				}
+			};
+
+			return backChannelConduit;
+		}
+
+		/** {@inheritDoc} */
+		@Override
+		protected Logger getLogger() {
+			return LOG;
+		}
+
+		protected void activate() {
+
+			WorkQueueManager queuem = bus.getExtension(WorkQueueManager.class);
+			queue = queuem.getNamedWorkQueue("udp-transport");
+			if (queue == null) {
+				queue = queuem.getAutomaticWorkQueue();
+			}
+
+			try {
+				URI uri = new URI(this.getAddress().getAddress().getValue());
+				InetSocketAddress isa = null;
+				if (StringUtils.isEmpty(uri.getHost())) {
+					String s = uri.getSchemeSpecificPart();
+					if (s.startsWith("//:")) {
+						s = s.substring(3);
+					}
+					if (s.indexOf('/') != -1) {
+						s = s.substring(0, s.indexOf('/'));
+					}
+					int port = Integer.parseInt(s);
+					isa = new InetSocketAddress(port);
+				} else {
+					isa = new InetSocketAddress(uri.getHost(), uri.getPort());
+				}
+				if (isa.getAddress().isMulticastAddress()) {
+					// ouch...
+					MulticastSocket socket = new MulticastSocket(null);
+					socket.setReuseAddress(true);
+					socket.setReceiveBufferSize(64 * 1024);
+					socket.setSendBufferSize(64 * 1024);
+					socket.setTimeToLive(1);
+					socket.bind(new InetSocketAddress(isa.getPort()));
+					socket.joinGroup(isa.getAddress());
+					mcast = socket;
+					queue.execute(new MCastListener());
+				} else {
+
+					acceptor = new NioDatagramAcceptor();
+					acceptor.setHandler(new UDPIOHandler());
+					acceptor.setDefaultLocalAddress(isa);
+					DatagramSessionConfig dcfg = acceptor.getSessionConfig();
+					dcfg.setReadBufferSize(64 * 1024);
+					dcfg.setSendBufferSize(64 * 1024);
+					dcfg.setReuseAddress(true);
+
+					// Binds to the default local address(es) and start to
+					// accept incoming connections.
+					acceptor.bind();
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				throw new RuntimeException(ex);
+			}
+		}
+
+		protected void deactivate() {
+			if (acceptor != null) {
+				acceptor.unbind();
+				acceptor.dispose();
+			}
+			acceptor = null;
+			if (mcast != null) {
+				mcast.close();
+				mcast = null;
+			}
+		}
+
+		@XmlRootElement
+		public class UDPConnectionInfo {
+
+			IoSession session;
+			@XmlElement
+			OutputStream out;
+			@XmlElement
+			InputStream in;
+
+			public UDPConnectionInfo() {
+
+			}
+
+			public UDPConnectionInfo(IoSession io, OutputStream o, InputStream i) {
+				session = io;
+				out = o;
+				in = i;
+			}
+		}
+
+		@XmlRootElement
+		class UDPIOHandler extends StreamIoHandler {
+			public OutputStream out;
+			public IoSessionInputStream in;
+
+			@Override
+			public void sessionOpened(IoSession session) {
+
+				// Set timeouts
+				session.getConfig().setWriteTimeout(getWriteTimeout());
+				session.getConfig().setIdleTime(IdleStatus.READER_IDLE,
+						getReadTimeout());
+				// Create streams
+				InputStream in = new IoSessionInputStream();
+
+				out = new IoSessionOutputStream(session);
+				session.setAttribute(KEY_IN, in);
+				session.setAttribute(KEY_OUT, out);
+
+				processStreamIo(session, in, out);
+
+			}
+
+			protected void processStreamIo(IoSession session, InputStream in,
+					OutputStream out) {
+
+				final MessageImpl m = new MessageImpl();
+				final Exchange exchange = new ExchangeImpl();
+				exchange.setDestination(MyDestination.this);
+				m.setDestination(MyDestination.this);
+				exchange.setInMessage(m);
+
+				m.setContent(InputStream.class, in);
+				out = new UDPDestinationOutputStream(out);
+				m.put(UDPConnectionInfo.class, new UDPConnectionInfo(session,
+						out, in));
+				
+				
+//				Message soap = m;
+				
+				@SuppressWarnings("unused")
+				final OutputStream outp = out;
+				final InputStream inp = in;
+				final NioDatagramSession nioSes = (NioDatagramSession) session;
+
+				queue.execute(new Runnable() {
+					public void run() {
+
+						MyMessage myMsg = new MyMessage();
+						myMsg.session = nioSes;
+						InputStream in_ = inp;
+						ByteArrayOutputStream output = new ByteArrayOutputStream();
+						
+						byte[] buffers = new byte[8192];
+						try {
+							for (int length = 0; (length = in_.read(buffers)) > 0;) {
+								output.write(buffers, 0, length);
+							}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+						byte[] bytes = output.toByteArray(); // transfer
+						myMsg.byteInputStream = bytes;
+						// System.out.println("add to queue");
+						
+						buffer.add(myMsg);
+						// addToQueue(myMsg);
+
+					}
+				});
+			}
+
+			public void sessionClosed(IoSession session) throws Exception {
+				final InputStream in = (InputStream) session
+						.getAttribute(KEY_IN);
+				final OutputStream out = (OutputStream) session
+						.getAttribute(KEY_OUT);
+				try {
+					in.close();
+				} finally {
+					out.close();
+				}
+			}
+
+			public void messageReceived(IoSession session, Object buf) {
+				// final IoSessionInputStream
+				in = (IoSessionInputStream) session.getAttribute(KEY_IN);
+				in.setBuffer((IoBuffer) buf);
+			}
+
+			public void exceptionCaught(IoSession session, Throwable cause) {
+				final IoSessionInputStream in = (IoSessionInputStream) session
+						.getAttribute(KEY_IN);
+
+				IOException e = null;
+				if (cause instanceof StreamIoException) {
+					e = (IOException) cause.getCause();
+				} else if (cause instanceof IOException) {
+					e = (IOException) cause;
+				}
+
+				if (e != null && in != null) {
+					in.throwException(e);
+				} else {
+					session.close(true);
+				}
+			}
+
+			public void sessionIdle(IoSession session, IdleStatus status) {
+				if (status == IdleStatus.READER_IDLE) {
+					throw new StreamIoException(new SocketTimeoutException(
+							"Read timeout"));
+				}
+			}
+		}
+
+		@XmlRootElement
+		private class StreamIoException extends RuntimeException {
+			private static final long serialVersionUID = 3976736960742503222L;
+
+			public StreamIoException(IOException cause) {
+				super(cause);
+			}
+		}
+
+		@XmlRootElement
+		public class UDPDestinationOutputStream extends OutputStream implements
+				Serializable {
+			final OutputStream out;
+			IoBuffer buffer = IoBuffer.allocate(64 * 1024 - 42); // max size
+			boolean closed;
+
+			public UDPDestinationOutputStream(OutputStream out) {
+				this.out = out;
+			}
+
+			public void write(int b) throws IOException {
+				buffer.put(new byte[] { (byte) b }, 0, 1);
+			}
+
+			public void write(byte b[], int off, int len) throws IOException {
+				while (len > buffer.remaining()) {
+					int nlen = buffer.remaining();
+					buffer.put(b, off, nlen);
+					len -= nlen;
+					off += nlen;
+					send();
+					buffer = IoBuffer.allocate((64 * 1024) - 42);
+				}
+				buffer.put(b, off, len);
+			}
+
+			private void send() throws IOException {
+				buffer.flip();
+				out.write(buffer.array(), 0, buffer.limit());
+			}
+
+			public void close() throws IOException {
+				if (closed) {
+					return;
+				}
+				closed = true;
+				send();
+				out.close();
+			}
+		}
+	}
+
+	class MyDestinationFactory extends AbstractTransportFactory implements
+			DestinationFactory {
+
+		final static String TRANSPORT_ID = "http://cxf.apache.org/transports/udp";
+
+		final Logger LOG = LogUtils.getL7dLogger(MyDestinationFactory.class);
+		final List<String> DEFAULT_NAMESPACES = Arrays.asList(TRANSPORT_ID);
+		final Set<String> URI_PREFIXES = new HashSet<String>();
+		{
+			URI_PREFIXES.add("udp://");
+		}
+
+		private Set<String> uriPrefixes = new HashSet<String>(URI_PREFIXES);
+
+		MyDestination myDest = null;
+
+		public MyDestinationFactory() {
+			super(Arrays.asList(TRANSPORT_ID));
+//			System.out.println("start my destination factory");
+		}
+
+		public Destination getDestination(EndpointInfo ei, Bus bus)
+				throws IOException {
+			return getDestination(ei, null, bus);
+		}
+
+		protected Destination getDestination(EndpointInfo ei,
+				EndpointReferenceType reference, Bus bus) throws IOException {
+			if (reference == null) {
+				reference = createReference(ei);
+			}
+			myDest = new MyDestination(bus, reference, ei);
+			return myDest;
+		}
+
+		public Set<String> getUriPrefixes() {
+			return uriPrefixes;
+		}
+
+		public void setUriPrefixes(Set<String> s) {
+			uriPrefixes = s;
+		}
+
+		EndpointReferenceType createReference(EndpointInfo ei) {
+			EndpointReferenceType epr = new EndpointReferenceType();
+			AttributedURIType address = new AttributedURIType();
+			address.setValue(ei.getAddress());
+			epr.setAddress(address);
+			return epr;
+		}
+
+	}
+
+	
+	public static void main(String args[]) {
+		new RLECompression();
+	}
+}

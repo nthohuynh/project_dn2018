@@ -1,0 +1,16 @@
+1. Run Karaf without deployment of components in XP and Mint.
+
+2. Set Framework UUID in Reconfigurator 
+
+
+3. Run reconfigurator in Eclipse
+
+4. Install and Start components in XP and Mint
+ 
+5. Run Karaf with Compression , Decompression, and Receiver
+
+TO TEST: 
+
+run Sender in Eclipse
+
+Click reconfigure

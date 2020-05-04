@@ -1,0 +1,83 @@
+package decompression;
+
+import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+import org.apache.felix.ipojo.Factory;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Property;
+import org.apache.felix.ipojo.annotations.Requires;
+
+import decompression.control.Controller;
+import decompression.control.DecompressionInInterceptor;
+import decompression.control.DecompressionOutInterceptor;
+import service.DecompressionService;
+
+
+@Component(name = "Decompression")
+public class Decompression {
+	
+	@Requires
+	private Factory[] factories;
+	
+	Server server;
+	JaxWsServerFactoryBean svrFactory;
+
+	JaxWsProxyFactoryBean decompression;
+	DecompressionService decompressService;
+
+	String decompressionAddress = "udp://192.168.56.3:9000/rledecompression";
+	public Decompression() {
+		System.out.println("start Decompression");
+		
+		Controller controller = new Controller();
+		controller.setFactory(factories);
+		
+		
+		DecompressionImpl sendingImpl = new DecompressionImpl();
+		svrFactory = new JaxWsServerFactoryBean();
+		
+
+		
+		//offer servive
+		svrFactory.setServiceClass(DecompressionService.class);
+		svrFactory.setAddress("udp://192.168.56.1:9002/decompression"); 
+		svrFactory.setServiceBean(sendingImpl);
+		svrFactory.getInInterceptors().add(new DecompressionInInterceptor());
+		server = svrFactory.create();
+		server.start();
+		
+		//connect to RLEDecompression 
+		decompression = new JaxWsProxyFactoryBean();
+		decompression.setServiceClass(DecompressionService.class);
+		decompression.setAddress(decompressionAddress);
+		decompression.getOutInterceptors().add(new DecompressionOutInterceptor());
+		decompressService = (DecompressionService)decompression.create();
+		
+//		System.out.println(decompressService.decompress("1T1i2t1o1t1a1t1u"));
+
+		
+	}
+
+	class DecompressionImpl implements DecompressionService {
+		public String decompress(String source) {
+			System.out.println("----------Decompression receives: "+source);
+			String str = decompressService.decompress(source);
+			return str;
+		}
+	}
+	
+	@Property (name="setAddress")
+	public void setAddress(String address) {
+    	this.decompressionAddress = address;
+    	//factory.getBus().shutdown(true);
+    	decompression.setAddress(address); //"udp://192.168.56.22:9012/lzdecompression";
+    	decompressService = (DecompressionService)decompression.create();
+    }
+	    
+	
+	
+	public static void main(String args[]) {
+		new Decompression();
+	}
+}

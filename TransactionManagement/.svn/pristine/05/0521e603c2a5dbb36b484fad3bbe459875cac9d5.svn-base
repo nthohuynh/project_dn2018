@@ -1,0 +1,11 @@
+1. Run reconfigurator in Eclipse
+
+2. Run Karaf with RLE and LZCompression in XP
+
+3. Run Karaf with RLE and LZDecompression in Mint Linux
+
+4. Run Karaf with Compression , Decompression, and Receiver
+
+TO TEST: 
+
+run Sender in Eclipse

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ASCII"?>
+<reconfigurationPlan:Plan
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:reconfigurationPlan="http://reconfigurationplan"
+    xmlns:statetransfer.org="http://statetransfer.org"
+    xsi:schemaLocation="http://reconfigurationplan ../models/reconfigurationPlan.ecore http://statetransfer.org ../models/stateTransfer.ecore">
+  <isolation>
+    <actions
+        component="RLECompression"/>
+  </isolation>
+  <activation>
+    <actions
+        id=""
+        component="LZCompression"/>
+    <actions
+        component="LZDecompression"/>
+  </activation>
+  <connection>
+    <actions
+        srcComponent="Compression"
+        dstComponent="LZCompression"/>
+    <actions
+        id=""
+        srcComponent="Decompression"
+        dstComponent="LZDecompression"/>
+  </connection>
+  <transfer>
+    <actions
+        id="">
+      <point>
+        <srcVariable
+            name="RLECompression"/>
+        <dstVariable
+            xsi:type="statetransfer.org:Variable"
+            name="LZCompression"/>
+      </point>
+    </actions>
+  </transfer>
+  <combination>
+    <actions
+        component="LZCompression"/>
+  </combination>
+  <deactivation>
+    <actions
+        component="RLECompression"/>
+    <actions
+        component="RLEDecompression"/>
+  </deactivation>
+</reconfigurationPlan:Plan>

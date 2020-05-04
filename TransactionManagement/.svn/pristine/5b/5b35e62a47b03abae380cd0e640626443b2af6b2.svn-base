@@ -1,0 +1,5 @@
+package reconfigurator;
+
+public class ReconfigureCommand {
+
+}

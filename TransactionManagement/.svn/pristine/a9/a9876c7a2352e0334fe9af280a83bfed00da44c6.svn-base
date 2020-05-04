@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<project name="lzcompression" default="package" basedir="">
+	<property name="src.dir" value="."/>
+	<property name="lib.dir" value="libs"/>
+	<property name="build.dir" value="build"/>
+	<property name="output.dir" value="output"/>
+
+	<taskdef resource="aQute/bnd/ant/taskdef.properties"
+			      classpath="../../tasks/bnd-1.50.0.jar"/>
+	<taskdef name="ipojo" classpath="../../tasks/org.apache.felix.ipojo.ant-1.11.1.jar"
+			classname="org.apache.felix.ipojo.task.IPojoTask"/>
+		
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+		<delete dir="${output.dir}"/>
+		<delete dir="${lib.dir}"/>
+	</target>
+	
+	<target name="buildclasspath">
+		<copy file="../../service/utils/output/utils.jar" todir="${lib.dir}"/>
+		<copy file="../../service/service/output/service.jar" todir="${lib.dir}"/>
+		<copy file="../../lib/CXF/cxf-rt-frontend-jaxws-3.0.4.jar" todir="${lib.dir}"/>
+		<copy file="../../lib/CXF/cxf-rt-frontend-simple-3.0.4.jar" todir="${lib.dir}"/>
+		
+		<copy file="../../lib/CXF/cxf-core-3.0.4.jar" todir="${lib.dir}"/>
+		<copy file="../../lib/CXF/cxf-rt-bindings-soap-3.0.4.jar" todir="${lib.dir}"/>
+		
+		<copy file="../../lib/mina-core-2.0.9.jar" todir="${lib.dir}"/>
+		<copy file="../../lib/commons-collections4-4.0.jar" todir="${lib.dir}"/>
+		<copy file="../../bundle/org.apache.felix.ipojo-1.12.0.jar" todir="${lib.dir}"/>
+		
+	</target>
+	<path id="classpath">
+	 	<fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+	<target name="compile" depends="clean, buildclasspath">
+		<mkdir dir="${output.dir}"/>
+		<mkdir dir="${build.dir}"/>
+		<javac  includeantruntime="false" 
+				srcdir="${src.dir}"
+		        destdir="${build.dir}"
+		        debug="on"
+				classpathref="classpath"
+		>
+		</javac>
+	</target>
+	
+	
+	<target name="package" depends="compile">
+		<bnd
+		   	classpath="${build.dir}"
+		    failok="false"
+		    exceptions="true"
+			files="${ant.project.name}.bnd"
+			output="${output.dir}"
+		/>
+		<delete dir="${build.dir}"/>
+		<delete dir="${lib.dir}"/>
+		
+		
+		<move todir="${output.dir}">
+		      <fileset dir="${output.dir}">
+		        <include name="*.jar"/>
+		      </fileset>
+		      <globmapper from="*.jar" to="${ant.project.name}.jar"/>
+		</move>
+			
+		<ipojo
+			input="${output.dir}/${ant.project.name}.jar"
+			metadata="metadata.xml"
+		/>
+		
+	</target>
+	
+
+</project>

@@ -1,0 +1,208 @@
+package reconfigurator;
+
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.ArrayList;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+
+import service.ControlService;
+import service.TransferService;
+import utils.MyMessage;
+
+public class Reconfigurator {
+	ArrayList<String> beginningTransaction = new ArrayList<String>();
+	ArrayList<String> endingTransaction = new ArrayList<String>();
+	
+	
+	public Reconfigurator() {
+		
+	}
+	
+	public void startReconfiguration(String reconfigurationPlan) {
+		/*
+		 * read plan and realize reconfiguration process
+		 */
+	}
+	
+	public void isolate(String component) {
+		/* 
+		 * connecto to component and send isolation command
+		 */
+		
+		/*
+		 * search the location of component thanks to a development model
+		 * 
+		 */
+		String adress = null;
+		
+		
+		/*
+		 * connect to the isolated component
+		 */
+		JaxWsProxyFactoryBean factory;
+		ControlService controlService;
+		factory = new JaxWsProxyFactoryBean();
+		factory.setServiceClass(ControlService.class);
+		factory.setAddress(adress);
+		controlService = (ControlService)factory.create();
+	
+		controlService.isolate(true);
+		
+	}
+	
+	public void activate(String component) {
+		/* 
+		 * connect to controller
+		 */
+		
+		/*
+		 * search the location of component thanks to a development model
+		 * 
+		 */
+		String adress = null;
+		
+		
+		/*
+		 * connect to the controller of activated component
+		 */
+		JaxWsProxyFactoryBean factory;
+		ControlService controlService;
+		factory = new JaxWsProxyFactoryBean();
+		factory.setServiceClass(ControlService.class);
+		factory.setAddress(adress);
+		controlService = (ControlService)factory.create();
+	
+		controlService.activate(component);
+	}
+	
+	public void deactivate(String component) {
+		/* 
+		 * connect to controller
+		 */
+		
+		/*
+		 * search the location of component thanks to a development model
+		 * 
+		 */
+		String adress = null;
+		
+		
+		/*
+		 * connect to the controller of activated component
+		 */
+		JaxWsProxyFactoryBean factory;
+		ControlService controlService;
+		factory = new JaxWsProxyFactoryBean();
+		factory.setServiceClass(ControlService.class);
+		factory.setAddress(adress);
+		controlService = (ControlService)factory.create();
+	
+		controlService.deactivate(component);
+	}
+	
+	public CircularFifoQueue<MyMessage> readMessages(String component) {
+		/*
+		 * search location of component 
+		 */
+		
+		String address = "";
+		int port = 0;
+		
+		
+		/*
+		 * connecto to component and read messages
+		 */
+		TransferService service;
+		Registry registry;
+		CircularFifoQueue<MyMessage> msg = null;
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			service = (TransferService) (registry.lookup(component));
+			msg = service.readMessages();
+		}catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return msg;
+	}
+	
+	public void writeMessage(String component, CircularFifoQueue<MyMessage> msg) {
+		/*
+		 * todo: search location of component 
+		 */
+		
+		String address = "";
+		int port = 0;
+		
+		
+		/*
+		 * connecto to component and write messages
+		 */
+		TransferService service;
+		Registry registry;
+		
+		try {
+			registry = LocateRegistry.getRegistry(address, port);
+			service = (TransferService) (registry.lookup(component));
+			
+			service.writeMessages(msg);
+		}catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	class ReconfiguratorService implements ControlService {
+		
+		@Override
+		public void informBeginning(String transactionID) {
+			// TODO Auto-generated method stub
+			
+			/*
+			 * begin a transaction
+			 */
+			beginningTransaction.add(transactionID);
+			
+		}
+
+		@Override
+		public void informEnding(String transactionID) {
+			// TODO Auto-generated method stub
+			
+			/*
+			 * end the transaction
+			 */
+			endingTransaction.add(transactionID);
+		}
+		
+		@Override
+		public void isolate(boolean bool) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void combine(boolean bool) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void activate(String component) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deactivate(String component) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+}

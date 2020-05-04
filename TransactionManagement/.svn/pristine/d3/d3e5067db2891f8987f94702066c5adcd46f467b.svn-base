@@ -1,0 +1,7 @@
+
+Private-Package:  \
+	sender,\
+	sender.control
+Include-Resource: \
+	resources
+Bundle-Name: Sender

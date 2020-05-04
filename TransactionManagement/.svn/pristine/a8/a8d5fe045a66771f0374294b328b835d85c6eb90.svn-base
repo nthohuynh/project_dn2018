@@ -1,0 +1,39 @@
+package control;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.cxf.binding.soap.SoapMessage;
+import org.apache.cxf.binding.soap.interceptor.AbstractSoapInterceptor;
+import org.apache.cxf.headers.Header;
+import org.apache.cxf.interceptor.Fault;
+import org.apache.cxf.phase.Phase;
+import org.w3c.dom.Element;
+
+public class RLEDecompressionOutInterceptor extends AbstractSoapInterceptor {
+	List<String> transactionList = new ArrayList<String>();
+	String transactionID;
+	public RLEDecompressionOutInterceptor() {
+		super(Phase.PRE_LOGICAL);
+	}
+
+	@Override
+	public void handleMessage(SoapMessage paramT) throws Fault {
+		// TODO Auto-generated method stub
+				List<Header> head = new ArrayList<Header>();
+
+				head.addAll(paramT.getHeaders());
+				for (Iterator<Header> i = head.iterator(); i.hasNext();) {
+					Header h = i.next();
+					Element n = (Element) h.getObject();
+					if (n.getLocalName().equals("transactionID")) {
+						//code to store transactionID
+						//transactionList.add(n.getTextContent());
+						transactionID = n.getTextContent();
+						System.out.println("Decompressed id: " + n.getTextContent());
+					}
+					
+				}
+	}
+}

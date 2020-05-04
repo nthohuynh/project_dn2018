@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ASCII"?>
+<reconfigurationPlan:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:reconfigurationPlan="http://reconfigurationplan">
+  <isolation>
+    <actions component="VE1"/>
+    <actions component="AE1"/>
+    <actions component="TE1"/>
+  </isolation>
+  <activation>
+    <actions component="VE2"/>
+    <actions component="AE2"/>
+    <actions component="TE2"/>
+    <actions component="VD2"/>
+    <actions component="AD2"/>
+    <actions component="TD2"/>
+  </activation>
+  <connection>
+    <actions srcComponent="VideoEncoding" dstComponent="VE2"/>
+    <actions srcComponent="AudioEncoding" dstComponent="AE2"/>
+    <actions srcComponent="TextEncoding" dstComponent="TE2"/>
+    <actions srcComponent="VideoDecoding" dstComponent="VD2"/>
+    <actions srcComponent="AudioDecoding" dstComponent="AD2"/>
+    <actions srcComponent="TextDecoding" dstComponent="TD2"/>
+  </connection>
+  <reintegration>
+    <actions component="VE2"/>
+    <actions component="AE2"/>
+    <actions component="TE2"/>
+  </reintegration>
+  <deactivation>
+    <actions component="VE1"/>
+    <actions component="AE1"/>
+    <actions component="TE1"/>
+    <actions component="VD1"/>
+    <actions component="AD1"/>
+    <actions component="TD1"/>
+  </deactivation>
+</reconfigurationPlan:Plan>

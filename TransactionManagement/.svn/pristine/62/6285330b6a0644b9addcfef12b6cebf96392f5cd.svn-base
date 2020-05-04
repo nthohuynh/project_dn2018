@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="ASCII"?>
+<acme.org:System
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:acme.org="www.acme.org"
+    xsi:schemaLocation="www.acme.org ../../models/ACME.ecore#/0"
+    name="EncodingSystem">
+  <componentDeclaration
+      name="Sender">
+    <ports name="toEncoding"/>
+    <ports name="toReceiver"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="Receiver">
+    <ports name="fromSender"/>
+    <ports name="toDecoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="Encoding">
+    <ports name="fromSender"/>
+    <ports name="toVideoEncoding"/>
+    <ports name="toAudioEncoding"/>
+    <ports name="toTextEncoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="Decoding">
+    <ports name="fromReceiver"/>
+    <ports name="toVideoDecoding"/>
+    <ports name="toAudioDecoding"/>
+    <ports name="toTextDecoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="VideoEncoding">
+    <representations>
+      <systems
+          name="VideoEncodingSystem">
+        <componentDeclaration
+            name="VE1">
+          <ports
+              name="fromVideoEncoding"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="VE2">
+          <ports
+              name="fromVideoEncoding"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="VideoEncoding"
+            portSrc="fromEncoding"
+            compDest="VE2"
+            portDest="fromVideoEncoding"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="VideoEncoding"
+            portSrc="fromEncoding"
+            compDest="VE1"
+            portDest="fromVideoEncoding"/>
+      </systems>
+    </representations>
+    <ports name="fromEncoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="AudioEncoding">
+    <representations>
+      <systems
+          name="AudioEncodingSystem">
+        <componentDeclaration
+            name="AE1">
+          <ports
+              name="fromAudioEncoding"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="AE2">
+          <ports
+              name="fromAudioEncoding"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="AudioEncoding"
+            portSrc="fromEncoding"
+            compDest="AE1"
+            portDest="fromAudioEncoding"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="AudioEncoding"
+            portSrc="fromEncoding"
+            compDest="AE2"
+            portDest="fromAudioEncoding"/>
+      </systems>
+    </representations>
+    <ports name="fromEncoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="TextEncoding">
+    <representations>
+      <systems
+          name="TextEncodingSystem">
+        <componentDeclaration
+            name="TE1">
+          <ports
+              name="fromTextEncoding"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="TE2">
+          <ports
+              name="fromTextEncoding"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="TextEncoding"
+            portSrc="fromEncoding"
+            compDest="TE2"
+            portDest="fromTextEncoding"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="TextEncoding"
+            portSrc="fromEncoding"
+            compDest="TE1"
+            portDest="fromTextEncoding"/>
+      </systems>
+    </representations>
+    <ports name="fromEncoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="VideoDecoding">
+    <representations>
+      <systems
+          name="VideoDecodingSystem">
+        <componentDeclaration
+            name="VD1">
+          <ports
+              name="fromVideoDecoding"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="VD2">
+          <ports
+              name="fromVideoDecoding"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="VideoDecoding"
+            portSrc="fromDecoding"
+            compDest="VD2"
+            portDest="fromVideoDecoding"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="VideoDecoding"
+            portSrc="fromDecoding"
+            compDest="VD1"
+            portDest="fromVideoDecoding"/>
+      </systems>
+    </representations>
+    <ports name="fromDecoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="AudioDecoding">
+    <representations>
+      <systems
+          name="AudioDecodingSystem">
+        <componentDeclaration
+            name="AD1">
+          <ports
+              name="fromAudioDecoding"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="AD2">
+          <ports
+              name="fromAudioDecoding"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="AudioDecoding"
+            portSrc="fromDecoding"
+            compDest="AD2"
+            portDest="fromAudioDecoding"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="AudioDecoding"
+            portSrc="fromDecoding"
+            compDest="AD1"
+            portDest="fromAudioDecoding"/>
+      </systems>
+    </representations>
+    <ports name="fromDecoding"/>
+  </componentDeclaration>
+  <componentDeclaration
+      name="TextDecoding">
+    <representations>
+      <systems
+          name="TextDecodingSystem">
+        <componentDeclaration
+            name="TD1">
+          <ports
+              name="fromTextDecoding"/>
+        </componentDeclaration>
+        <componentDeclaration
+            name="TD2">
+          <ports
+              name="fromTextDecoding"/>
+        </componentDeclaration>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="TextDecoding"
+            portSrc="fromDecoding"
+            compDest="TD2"
+            portDest="fromTextDecoding"/>
+        <binding
+            xsi:type="acme.org:Binding"
+            compSrc="TextDecoding"
+            portSrc="fromDecoding"
+            compDest="TD1"
+            portDest="fromTextDecoding"/>
+      </systems>
+    </representations>
+    <ports name="fromDecoding"/>
+  </componentDeclaration>
+  <connectorDeclaration
+      name="CnnS-E">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnE-VE">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnE-AE">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnE-TE">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnS-R">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnR-D">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnD-VD">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnD-AD">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <connectorDeclaration
+      name="CnnD-TD">
+    <roles name="caller"/>
+    <roles name="callee"/>
+  </connectorDeclaration>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Sender"
+      port="toEncoding"
+      con="CnnS-E"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Sender"
+      port="toReceiver"
+      con="CnnS-R"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Encoding"
+      port="fromSender"
+      con="CnnS-E"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Encoding"
+      port="toVideoEncoding"
+      con="CnnE-VE"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Encoding"
+      port="toAudioEncoding"
+      con="CnnE-AE"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Encoding"
+      port="totextEncoding"
+      con="CnnE-TE"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="VideoEncoding"
+      port="fromEncoding"
+      con="CnnE-VE"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="AudioEncoding"
+      port="fromEncoding"
+      con="CnnE-AE"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="TextEncoding"
+      port="fromEncoding"
+      con="CnnE-TE"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Receiver"
+      port="fromSender"
+      con="CnnS-R"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Receiver"
+      port="toDecoding"
+      con="CnnR-D"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Decoding"
+      port="fromReceiver"
+      con="CnnR-D"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Decoding"
+      port="toVideoDecoding"
+      con="CnnD-VD"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Decoding"
+      port="toAudioDecoding"
+      con="CnnD-AD"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="Decoding"
+      port="toTextDecoding"
+      con="CnnD-TD"
+      role="caller"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="VideoDecoding"
+      port="fromDecoding"
+      con="CnnD-VD"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="AudioDecoding"
+      port="fromDecoding"
+      con="CnnD-AD"
+      role="callee"/>
+  <attachement
+      xsi:type="acme.org:Attachment"
+      comp="TextDecoding"
+      port="fromDecoding"
+      con="CnnD-TD"
+      role="callee"/>
+</acme.org:System>

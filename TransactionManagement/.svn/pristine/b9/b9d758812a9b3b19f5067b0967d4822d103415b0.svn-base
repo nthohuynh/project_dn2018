@@ -1,0 +1,6 @@
+
+Private-Package:  \
+	rle.rlecompression
+Include-Resource: \
+	resources
+Bundle-Name: RLECompression

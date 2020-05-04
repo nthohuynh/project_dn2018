@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ASCII"?>
+<cvl:VPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cvl="http:///cvl.ecore" xsi:schemaLocation="http:///cvl.ecore ../../models/CVLMetamodel.ecore" name="TransactionManagementSystem">
+  <packageElement xsi:type="cvl:Choice" name="CommunicationService" resolutionTime="" defaultResolution="true">
+    <child xsi:type="cvl:Choice" name="Sender" isImpliedByParent="true"/>
+    <child xsi:type="cvl:Choice" name="Receiver" isImpliedByParent="true"/>
+    <child xsi:type="cvl:Choice" name="Compression" resolutionTime="" isImpliedByParent="true">
+      <groupMultiplicity upper="1" lower="1"/>
+      <child xsi:type="cvl:Choice" name="RLECompression"/>
+      <child xsi:type="cvl:Choice" name="LZCompression"/>
+    </child>
+    <child xsi:type="cvl:Choice" name="Decompression" resolutionTime="" isImpliedByParent="true">
+      <groupMultiplicity upper="1" lower="1"/>
+      <child xsi:type="cvl:Choice" name="RLEDecompression"/>
+      <child xsi:type="cvl:Choice" name="LZDecompression" resolutionTime=""/>
+    </child>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="SenderVP" bindingVSpec="//@packageElement.0/@child.0" bindingChoice="//@packageElement.0/@child.0">
+    <optionalObject MOFRef="Sender"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="ReceiverVP" bindingVSpec="//@packageElement.0/@child.1" bindingChoice="//@packageElement.0/@child.1">
+    <optionalObject MOFRef="Receiver"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="CompressionVP" bindingVSpec="//@packageElement.0/@child.2" bindingChoice="//@packageElement.0/@child.2">
+    <optionalObject MOFRef="Compression"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="DecompressionVP" bindingVSpec="//@packageElement.0/@child.3" bindingChoice="//@packageElement.0/@child.3">
+    <optionalObject MOFRef="Decompression"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="RLECompressionVP" bindingVSpec="//@packageElement.0/@child.2/@child.0" bindingChoice="//@packageElement.0/@child.2/@child.0">
+    <optionalObject MOFRef="RLECompression"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="LZCompressionVP" bindingVSpec="//@packageElement.0/@child.2/@child.1" bindingChoice="//@packageElement.0/@child.2/@child.1">
+    <optionalObject MOFRef="LZCompression"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="RLEDecompressionVP" bindingVSpec="//@packageElement.0/@child.3/@child.0" bindingChoice="//@packageElement.0/@child.3/@child.0">
+    <optionalObject MOFRef="RLEDecompression"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:ObjectExistence" name="LZDecompressionVP" bindingVSpec="//@packageElement.0/@child.3/@child.1" bindingChoice="//@packageElement.0/@child.3/@child.1">
+    <optionalObject MOFRef="LZDecompression"/>
+  </packageElement>
+  <packageElement xsi:type="cvl:BCLConstraint" name="" context="//@packageElement.0/@child.2">
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="logImplies">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.1"/>
+    </expression>
+  </packageElement>
+  <packageElement xsi:type="cvl:BCLConstraint" context="//@packageElement.0/@child.2">
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.0"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.0"/>
+    </expression>
+    <expression xsi:type="cvl:OperationCallExp" operation="dependsOn">
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.2/@child.1"/>
+      <argument xsi:type="cvl:VSpecRef" vSpec="//@packageElement.0/@child.3/@child.1"/>
+    </expression>
+  </packageElement>
+</cvl:VPackage>

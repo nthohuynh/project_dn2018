@@ -1,0 +1,9 @@
+<ipojo>
+<instance name="iLZCompression" component="LZCompression">
+	
+</instance>
+</ipojo>
+
+<!-- property value="*" name="osgi.remote.interfaces"/ -->
+<!-- property value="org.apache.cxf.ws" name="osgi.remote.configuration.type"/> -->
+<!-- property value="http://192.168.56.1:9090/service" name="osgi.remote.configuration.pojo.address"/>  -->

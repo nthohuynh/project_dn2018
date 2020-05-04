@@ -1,0 +1,288 @@
+package planner;
+
+import java.util.ArrayList;
+import java.util.logging.Handler;
+
+import org.eclipse.emf.common.util.EList;
+
+//import resolution.implement.ResolutionModel;
+//import variationpoint.implement.VariationPointImpl;
+//import vspectree.implement.VSpecTreeImpl;
+import cvl.ChoiceResolution;
+import cvl.MultiplicityInterval;
+import cvl.ObjectExistence;
+import cvl.ObjectSubstitution;
+import cvl.ParametricSlotAssignment;
+import cvl.VPackage;
+import cvl.VSpec;
+import cvl.VSpecResolution;
+import cvl.VariableValueAssignment;
+import cvl.VariationPoint;
+
+public class Planner {
+	/**
+	 * generate reconfiguration plan
+	 * a reconfiguration plan consists of 
+	 * 		1. start and activate new component
+	 * 		2. update properties of component
+	 * 		3. connect to new component
+	 * 		4. deactivate and remove component
+	 */	
+	ArrayList<VSpec> vSpecList; //
+	ArrayList<VSpecResolution> sourceResolutionList;
+	ArrayList<VSpecResolution> destinationResolutionList;
+	ArrayList<VariationPoint> vpList;
+	public Planner(ArrayList<VSpec> vSpecList,
+			ArrayList<VSpecResolution> sourceResolutionList,
+			ArrayList<VSpecResolution> destinationResolutionList,
+			ArrayList<VariationPoint> vPList) {
+		super();
+		this.vSpecList = vSpecList;
+		this.sourceResolutionList = sourceResolutionList;
+		this.destinationResolutionList = destinationResolutionList;
+		this.vpList = vPList;
+	}
+	public Planner() {
+		super();
+	}
+	/*
+	 * find new component in new architecture compared with current architecture
+	 * start these new component
+	 */
+	ArrayList<String> addedNewComponent() {
+		ArrayList<String> newComponentList = new ArrayList<String>();
+		
+		//suppose that two resolution trees are the same structure
+		for (int i = 0; i < sourceResolutionList.size(); i++) {
+			VSpecResolution srcVSpR = sourceResolutionList.get(i);
+			VSpecResolution dstVSpR = destinationResolutionList.get(i);
+			if (srcVSpR.getName().equals(dstVSpR.getName())
+					&& (srcVSpR instanceof ChoiceResolution) 
+					&& (dstVSpR instanceof ChoiceResolution)) {
+				ChoiceResolution srcChoice = (ChoiceResolution)srcVSpR;
+				ChoiceResolution dstChoice = (ChoiceResolution)dstVSpR;
+				if (!srcChoice.isDecision()
+						&& dstChoice.isDecision()) {
+					
+					//search component relating to dstChoice
+					newComponentList.add(returnBaseElementNameByVSpecResolution(dstVSpR, vpList));
+				}
+			}
+		}
+		return newComponentList;
+	}
+	ArrayList<String> deleteedNewComponent() {
+		ArrayList<String> oldComponentList = new ArrayList<String>();
+		for (int i = 0; i < sourceResolutionList.size(); i++) {
+			VSpecResolution srcVSpR = sourceResolutionList.get(i);
+			VSpecResolution dstVSpR = destinationResolutionList.get(i);
+			if (srcVSpR.getName().equals(dstVSpR.getName())
+					&& (srcVSpR instanceof ChoiceResolution) 
+					&& (dstVSpR instanceof ChoiceResolution)) {
+				ChoiceResolution srcChoice = (ChoiceResolution)srcVSpR;
+				ChoiceResolution dstChoice = (ChoiceResolution)dstVSpR;
+				if (srcChoice.isDecision()
+						&& !dstChoice.isDecision()) {
+					
+					//search component relating to srcChoice
+					oldComponentList.add(returnBaseElementNameByVSpecResolution(srcVSpR, vpList));
+				}
+			}
+		}
+		return oldComponentList;
+	}
+	
+	//update parametter
+	ArrayList<Parametter> updateParametter() {
+		ArrayList<Parametter> parametter = new ArrayList<Parametter>();
+		for (int i = 0; i < sourceResolutionList.size(); i++) {
+			VSpecResolution srcVSpR = sourceResolutionList.get(i);
+			VSpecResolution dstVSpR = destinationResolutionList.get(i);
+			if (srcVSpR.getName().equals(dstVSpR.getName())
+					&& (srcVSpR instanceof VariableValueAssignment) 
+					&& (dstVSpR instanceof VariableValueAssignment)) {
+				
+				VariableValueAssignment srcChoice = (VariableValueAssignment)srcVSpR;
+				VariableValueAssignment dstChoice = (VariableValueAssignment)dstVSpR;
+				
+				if (!srcChoice.getValue().equals(dstChoice.getValue())) {
+					Parametter pr = new Parametter(returnBaseElementNameByVSpecResolution(dstChoice, vpList), dstChoice.getValue());
+					//search component relating to srcChoice
+					parametter.add(pr);
+				}
+			}
+		}
+		return parametter;
+	}
+	
+	//change Connection
+	ArrayList<Connection> changeConnecionList() {
+		ArrayList<Connection> changeConnection = new ArrayList<Connection>();
+		for (int i = 0; i < sourceResolutionList.size(); i++) {
+			VSpecResolution srcVSpR = sourceResolutionList.get(i);
+			VSpecResolution dstVSpR = destinationResolutionList.get(i);
+			if (srcVSpR.getName().equals(dstVSpR.getName())
+					&& (srcVSpR instanceof ChoiceResolution) 
+					&& (dstVSpR instanceof ChoiceResolution)) {
+				ChoiceResolution srcChoice = (ChoiceResolution)srcVSpR;
+				ChoiceResolution dstChoice = (ChoiceResolution)dstVSpR;
+				if (!srcChoice.isDecision()
+						&& dstChoice.isDecision()) {
+					
+					VSpecResolution vspR_DstParent = (VSpecResolution) dstVSpR.eContainer();
+					String srcComponent = returnBaseElementNameByVSpecResolution(vspR_DstParent, vpList);
+					
+					VSpecResolution vspR_SrcParent = (VSpecResolution) srcVSpR.eContainer();
+					EList<VSpecResolution> vprSrcList = vspR_SrcParent.getChild();
+					String placementComponent = "";
+					for (int j = 0; j < vprSrcList.size(); j++) {
+						if (((ChoiceResolution)vprSrcList.get(j)).isDecision()) {
+							placementComponent = 
+									returnBaseElementNameByVSpecResolution((VSpecResolution)vprSrcList.get(j), vpList);
+							break;
+						}
+					}
+					
+					VSpec vspec = vspR_DstParent.getResolvedVSpec();
+					MultiplicityInterval grp = vspec.getGroupMultiplicity();
+					
+					if (grp.getLower() == 1 && grp.getUpper() == 1) {
+						String replacementComponent = returnBaseElementNameByVSpecResolution(dstVSpR, vpList);
+						Connection con = new Connection(srcComponent, placementComponent, replacementComponent);
+						changeConnection.add(con);
+						
+					}
+				}
+			}
+		}
+		return changeConnection;
+	}
+	
+	//util
+	String returnBaseElementNameByVSpecResolution (VSpecResolution vspecResolution, ArrayList<VariationPoint> vpList) {
+		String str = "";
+		VSpec vspec = vspecResolution.getResolvedVSpec();
+		for (int i = 0; i < vpList.size(); i++) {
+			VariationPoint vp = vpList.get(i); 
+			if (vp != null) 
+			if (vp.getBindingVSpec().getName().equals(vspec.getName())) {
+				if (vp instanceof ObjectSubstitution) {
+					//System.out.println("test");
+					ObjectSubstitution vpSubT = (ObjectSubstitution)vp;
+					return vpSubT.getReplacementObject().getMOFRef();
+				} else if (vp instanceof ObjectExistence) {
+					ObjectExistence vpSubT = (ObjectExistence)vp;
+					return vpSubT.getOptionalObject().getMOFRef();
+				} else if (vp instanceof ParametricSlotAssignment) {
+					ParametricSlotAssignment vpSubT = (ParametricSlotAssignment)vp;
+					return vpSubT.getSlotOwner().getMOFRef();
+				}
+			}
+		}
+		return str;
+	}
+/*	public static void main(String arg[]) {
+		String srcResolutionFile = "model/resolution.cvl";
+		String dstResolutionFile = "model/dstresolution.cvl";
+		String vSpecTreeFile = "model/vspectree.cvl";
+		String vpFile = "model/fractal/variationpoint.cvl";
+		
+		ResolutionModel srcResolutionModel = new ResolutionModel();
+		VSpecResolution srcResolutionRoot = srcResolutionModel.getVSpecResolutionRoot(srcResolutionFile);
+		ArrayList<VSpecResolution> sourceResolutionList = srcResolutionModel.getVSPecResolutionList(srcResolutionRoot);
+		
+		ResolutionModel dstResolutionModel = new ResolutionModel();
+		VSpecResolution dstResolutionRoot = dstResolutionModel.getVSpecResolutionRoot(dstResolutionFile);
+		ArrayList<VSpecResolution> destinationResolutionList = srcResolutionModel.getVSPecResolutionList(dstResolutionRoot);
+		
+		VSpecTreeImpl vspecModel = new VSpecTreeImpl();
+		VPackage vpackageVSpec = vspecModel.getVPackage(vSpecTreeFile);
+		ArrayList<VSpec> vSpecList = vspecModel.getVSpecList(vpackageVSpec);
+		
+		VariationPointImpl vpModel = new VariationPointImpl();
+		VPackage vpackage = vpModel.getVPackage(vpFile);
+		ArrayList<VariationPoint> vpList = vpModel.getVariationPointList(vpackage);
+		
+		Planner plan = new Planner(vSpecList, sourceResolutionList, destinationResolutionList, vpList);	
+		
+		ArrayList<String> str = plan.addedNewComponent();
+		for (int i = 0; i < str.size(); i++) {
+			System.out.println("start new component: "+str.get(i));
+		}
+		
+		
+		ArrayList<Parametter> para = plan.updateParametter();
+		for (int i = 0; i < para.size(); i++) {
+			System.out.println("update: "+para.get(i).getParametter() +" = "+para.get(i).getValue());
+		}
+		
+		ArrayList<Connection> con = plan.changeConnecionList();
+		for (int i = 0; i < con.size(); i++) {
+			Connection c = con.get(i);
+			System.out.println("Change connection of "+c.getSrcComponent()+" from "+c.getDstComponent()+" to "+c.getRdstComponent());
+		}
+		
+	
+		
+		ArrayList<String> del = plan.deleteedNewComponent();
+		for (int i = 0; i < del.size(); i++) {
+			System.out.println("stop component: "+del.get(i));
+		}
+		
+	}
+	*/
+	
+}
+class Parametter {
+	String parametter;
+	String value;
+	public Parametter(String parametter, String value) {
+		super();
+		this.parametter = parametter;
+		this.value = value;
+	}
+	public String getParametter() {
+		return parametter;
+	}
+	public void setParametter(String parametter) {
+		this.parametter = parametter;
+	}
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
+	}
+}
+class Connection {
+	String srcComponent;
+	String dstComponent;
+	String rdstComponent;
+	public Connection(String srcComponent, String dstComponent,
+			String rdstComponent) {
+		super();
+		this.srcComponent = srcComponent;
+		this.dstComponent = dstComponent;
+		this.rdstComponent = rdstComponent;
+	}
+	public String getSrcComponent() {
+		return srcComponent;
+	}
+	public void setSrcComponent(String srcComponent) {
+		this.srcComponent = srcComponent;
+	}
+	public String getDstComponent() {
+		return dstComponent;
+	}
+	public void setDstComponent(String dstComponent) {
+		this.dstComponent = dstComponent;
+	}
+	public String getRdstComponent() {
+		return rdstComponent;
+	}
+	public void setRdstComponent(String rdstComponent) {
+		this.rdstComponent = rdstComponent;
+	}
+}
+
+

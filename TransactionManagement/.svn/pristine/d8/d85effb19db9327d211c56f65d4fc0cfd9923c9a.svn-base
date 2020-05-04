@@ -1,0 +1,8 @@
+package service;
+
+import javax.jws.WebService;
+
+@WebService
+public interface CompressionService {
+	public String compress(String str);
+}

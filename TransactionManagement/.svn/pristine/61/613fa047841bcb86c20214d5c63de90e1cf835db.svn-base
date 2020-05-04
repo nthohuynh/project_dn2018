@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ASCII"?>
+<deployment:NodeList
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:deployment="http://deployment"
+    xsi:schemaLocation="http://deployment ../models/deployment.ecore">
+  <nodes componentInstanceName="Sender"
+      addressIP="192.168.56.1"
+      frameworkUUID=""/>
+  <nodes componentInstanceName="Receiver"
+      addressIP="192.168.56.1"
+      applicationPort="9000"/>
+  <nodes componentInstanceName="Compression"
+      addressIP="192.168.56.1"
+      applicationPort="9001"
+      controlPort="9011"/>
+  <nodes componentInstanceName="Decompression"
+      addressIP="192.168.56.1"
+      applicationPort="9002"/>
+  <nodes componentInstanceName="Reconfigurator"
+      addressIP="192.168.56.1"
+      applicationPort="9013"/>
+  <nodes componentInstanceName="RLECompression"
+      addressIP="192.168.56.2"
+      applicationPort="9000"
+      controlPort="9010"
+      frameworkUUID="5328f581-2fae-4036-9336-d5aea065d2e3"/>
+  <nodes componentInstanceName="LZCompression"
+      addressIP="192.168.56.2"
+      applicationPort="9001"
+      frameworkUUID="c134717b-a09c-41c0-b5da-01bfaa904df6"/>
+  <nodes componentInstanceName="RLEDecompression"
+      addressIP="192.168.56.3"
+      applicationPort="9000"
+      frameworkUUID="5328f581-2fae-4036-9336-d5aea065d2e3"/>
+  <nodes componentInstanceName="LZDecompression"
+      addressIP="192.168.56.3"
+      applicationPort="9001"
+      frameworkUUID="c134717b-a09c-41c0-b5da-01bfaa904df6"/>
+</deployment:NodeList>
