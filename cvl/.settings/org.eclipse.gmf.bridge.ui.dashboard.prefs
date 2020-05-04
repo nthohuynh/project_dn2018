@@ -1,0 +1,7 @@
+eclipse.preferences.version=1
+gmf_dashboard/domainGenerationModel=platform\:/resource/CVLEditor/model/My.genmodel
+gmf_dashboard/domainModel=platform\:/resource/CVLEditor/model/My.ecore
+gmf_dashboard/generationModel=platform\:/resource/CVLEditor/model/My.gmfgen
+gmf_dashboard/graphicalDefinitionModel=platform\:/resource/CVLEditor/model/My.gmfgraph
+gmf_dashboard/mappingModel=platform\:/resource/CVLEditor/model/My.gmfmap
+gmf_dashboard/toolingDefinitionModel=platform\:/resource/CVLEditor/model/My.gmftool

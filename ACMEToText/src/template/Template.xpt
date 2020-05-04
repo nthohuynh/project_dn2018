@@ -1,0 +1,43 @@
+«IMPORT ACME»
+
+«EXTENSION metamodel::Extensions»
+«DEFINE system FOR System»
+	«EXPAND component FOREACH getComponentList()»
+«ENDDEFINE»
+
+«DEFINE component FOR Component»
+	«IF representations.size > 0»
+		«FOREACH getRepresentations() AS representation»
+			«IF representation.getSystems().size > 0 »
+				«FOREACH representation.systems AS system»
+					«IF system.getComponentList().size > 0»
+						«EXPAND component FOREACH system.getComponentList()»
+					«ENDIF»
+				«ENDFOREACH»
+			«ENDIF»
+				
+		«ENDFOREACH»
+	«ELSE»
+		«FILE name+".java"»
+import org.apache.felix.ipojo.annotations.*;	
+@Component(name="«name»")
+//begin the class
+public class «name» {
+			«EXPAND property FOREACH getProperties()»
+}
+		«ENDFILE»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE implementation FOR Type»
+«ENDDEFINE»
+
+«DEFINE property FOR Property»
+	@Property(name="«this.name»")
+	«IF val ==  null»
+		String «this.name»;
+	«ELSE»
+		String «this.name» = "«val»";
+	«ENDIF»
+	
+«ENDDEFINE»

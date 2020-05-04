@@ -1,0 +1,24 @@
+
+import ACME;
+
+List[Component] getComponentList(System this) : 
+	componentDeclaration.typeSelect(Component);
+
+List[Representation] getRepresentations(Component this) :
+	representations.typeSelect(Representation);
+
+List[System] getSystems(Representation this) :
+	systems.typeSelect(System);
+
+List[Property] getProperties(Component this) :
+	property.typeSelect(Property);
+
+List[Port] getPorts(Component this) :
+	ports.typeSelect(Port);
+	
+List[Connector] getConnectors(System this) :
+	connectorDeclaration.typeSelect(Connector);
+		
+List[Attachment] getAttachments(System this) :
+	attachement.typeSelect(Attachment);
+	

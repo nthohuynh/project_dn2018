@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ASCII"?>
+<cvl:VPackage
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:cvl="http:///cvl.ecore"
+    xsi:schemaLocation="http:///cvl.ecore ../model/CVLMetamodel.ecore">
+  <packageElement
+      xsi:type="cvl:ChoiceResolution"
+      name="TMS"
+      availabilityAtRuntime="true"
+      decision="true">
+    <child xsi:type="cvl:ChoiceResolution"
+        name="Sender"
+        availabilityAtRuntime="true"
+        decision="true">
+      <resolvedChoice
+          href="TMSVariabilityModel.xmi#//@packageElement.0/@child.0"/>
+    </child>
+    <child xsi:type="cvl:ChoiceResolution"
+        name="Receiver"
+        availabilityAtRuntime="true"
+        decision="true">
+      <resolvedChoice
+          href="TMSVariabilityModel.xmi#//@packageElement.0/@child.0"/>
+    </child>
+    <child xsi:type="cvl:ChoiceResolution"
+        name="Compression"
+        availabilityAtRuntime="true"
+        decision="true">
+      <child
+          xsi:type="cvl:ChoiceResolution"
+          name="RLECompression"
+          availabilityAtRuntime="true"
+          decision="true">
+        <resolvedVSpec
+            xsi:type="cvl:Choice"
+            href="TMSVariabilityModel.xmi#//@packageElement.0/@child.2/@child.0"/>
+        <resolvedChoice
+            href="TMSVariabilityModel.xmi#//@packageElement.0/@child.2/@child.0"/>
+      </child>
+      <child
+          xsi:type="cvl:ChoiceResolution"
+          name="LZCompression"
+          availabilityAtRuntime="true">
+        <resolvedChoice
+            href="TMSVariabilityModel.xmi#//@packageElement.0/@child.2/@child.1"/>
+      </child>
+      <resolvedChoice
+          href="TMSVariabilityModel.xmi#//@packageElement.0/@child.2"/>
+    </child>
+    <child xsi:type="cvl:ChoiceResolution"
+        name="Decompression"
+        availabilityAtRuntime="true"
+        decision="true">
+      <child
+          xsi:type="cvl:ChoiceResolution"
+          name="RLEDecompression"
+          availabilityAtRuntime="true"
+          decision="true">
+        <resolvedChoice
+            href="TMSVariabilityModel.xmi#//@packageElement.0/@child.3/@child.0"/>
+      </child>
+      <child
+          xsi:type="cvl:ChoiceResolution"
+          name="LZDecompression"
+          availabilityAtRuntime="true">
+        <resolvedChoice
+            href="TMSVariabilityModel.xmi#//@packageElement.0/@child.3/@child.1"/>
+      </child>
+      <resolvedChoice
+          href="TMSVariabilityModel.xmi#//@packageElement.0/@child.3"/>
+    </child>
+  </packageElement>
+</cvl:VPackage>
